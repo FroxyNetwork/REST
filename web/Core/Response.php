@@ -43,12 +43,23 @@ final class Response {
 
     private function __construct() {}
 
-    public static function response($data, $code = 200, $error = false) {
+    private static function _create($data, $code = 200, $error = false, $error_message = null) {
         return [
             "error" => $error,
             "code" => $code,
+            "error_message" => $error_message,
             "data" => $data
         ];
+    }
+
+    /**
+     * Envoyer un message sous format JSON
+     *
+     * @param ? $data Les données à envoyer
+     * @param int $code Le code de retour
+     */
+    public static function ok($data, $code = 200) {
+        self::send(self::_create($data, $code));
     }
 
     /**
@@ -56,9 +67,11 @@ final class Response {
      *
      * @param int errorCode Le code d'erreur
      * @param string error Le message d'erreur
+     *
+     * TODO: Custom Error ID
      */
     public static function error($errorCode, $error) {
-        self::send(self::response($error, $errorCode, true));
+        self::send(self::_create(null, $errorCode, true, $error));
     }
 
     /**
@@ -73,7 +86,7 @@ final class Response {
      *
      * @param $data array Les données à afficher
      */
-    public static function send($data) {
+    private static function send($data) {
         header('Content-Type:application/json');
         if (isset($data['code']))
             http_response_code($data['code']);

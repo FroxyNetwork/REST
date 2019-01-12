@@ -26,18 +26,19 @@ class TestController extends AppController {
 
 
     public function get($param) {
-        Response::send(["Token" => $this->token->get()]);
+        Response::ok(["METHODE" => "GET", "URL" => $this->request->getURL(true, true)]);
+       // Response::send(["Token" => $this->token->get()]);
     }
 
     public function post($param) {
-        Response::send(["METHODE" => "POST"]);
+        Response::ok(["METHODE" => "POST", "URL" => $this->request->getURL(true, true)]);
     }
 
     public function put($param) {
-        Response::send(["METHODE" => "PUT"]);
+        Response::ok(["METHODE" => "PUT"]);
     }
 
     public function delete($param) {
-        Response::send(["METHODE" => "DELETE"]);
+        Response::ok(["METHODE" => "DELETE"]);
     }
 }
