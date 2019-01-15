@@ -23,22 +23,17 @@
  * SOFTWARE.
  */
 
-if (!defined('DS'))
-    define('DS', DIRECTORY_SEPARATOR);
-if (!defined('ROOT'))
-    define('ROOT', dirname(dirname(dirname(__FILE__))));
-if (!defined('API_NAME'))
-    define('API_NAME', 'api');
-if (!defined('API_DIR'))
-    define('API_DIR', ROOT.DS.API_NAME);
-if (!defined('WEB_NAME'))
-    define('WEB_NAME', 'web');
-if (!defined('WEB_DIR'))
-    define('WEB_DIR', ROOT.DS.WEB_NAME);
-// TODO Récupérer l'url depuis un fichier de config
-if (!defined('WEBSITE'))
-    define('WEBSITE', 'localhost');
-session_start();
-require WEB_DIR.DS."Core".DS."Core.php";
-spl_autoload_register(['Core', 'load']);
-Core::init();
+include "define.php";
+
+function __auto_loader($class) {
+    $parts = explode('\\', $class);
+    $ln = count($parts);
+    for ($i = 0; $i < $ln - 1; $i++)
+        $parts[$i] = strtolower($parts[$i]);
+
+    $path = ROOT.DS.implode(DS, $parts).'.php';
+
+    return require_once $path;
+}
+
+spl_autoload_register("__auto_loader");

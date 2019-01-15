@@ -27,15 +27,7 @@
  * Ce fichier est executé parce que mod_rewrite ou .htaccess sont désactivés
  */
 
-define('DS', DIRECTORY_SEPARATOR);
-define('ROOT', dirname(__FILE__));
-define('API_NAME', 'api');
-define('API_DIR', ROOT.DS.API_NAME);
-define('WEB_NAME', 'web');
-define('WEB_DIR', ROOT.DS.WEB_NAME);
-// TODO Récupérer l'url depuis un fichier de config
-define('WEBSITE', 'localhost');
 
 $redirectNotSupported = true;
 
-require API_DIR.DS."index.php";
+require "web".DIRECTORY_SEPARATOR."Redirect".DIRECTORY_SEPARATOR."index.php";

@@ -22,6 +22,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+namespace Web\Controller;
+
+use Web\Core\Core;
+
 class RequestController {
     /**
      * @var bool $https True si l'on utilise https

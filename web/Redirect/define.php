@@ -22,9 +22,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-// Examples:
-// Index
 
-use Web\Core\Route;
-
-Route::connect("/", "Test");
+if (!defined('DS'))
+    define('DS', DIRECTORY_SEPARATOR);
+if (!defined('ROOT'))
+    define('ROOT', dirname(dirname(dirname(__FILE__))));
+if (!defined('API_NAME'))
+    define('API_NAME', 'api');
+if (!defined('API_DIR'))
+    define('API_DIR', ROOT.DS.API_NAME);
+if (!defined('WEB_NAME'))
+    define('WEB_NAME', 'web');
+if (!defined('WEB_DIR'))
+    define('WEB_DIR', ROOT.DS.WEB_NAME);
+// TODO Récupérer l'url depuis un fichier de config
+if (!defined('WEBSITE'))
+    define('WEBSITE', 'localhost');

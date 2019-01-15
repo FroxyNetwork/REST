@@ -23,12 +23,12 @@
  * SOFTWARE.
  */
 
-require_once(WEB_DIR.DS."Controller".DS."AppController.php");
-require_once(WEB_DIR.DS."Controller".DS."DBController.php");
-require_once(WEB_DIR.DS."Controller".DS."RequestController.php");
+namespace Web\Core;
 
-require_once(WEB_DIR.DS."Core".DS."Response.php");
-require_once(WEB_DIR.DS."Core".DS."Route.php");
+use Api\Controller\WebController;
+use Web\Controller\AppController;
+use Web\Controller\DBController;
+use Web\Controller\RequestController;
 
 class Core {
     const MODELS = 0;
@@ -63,7 +63,7 @@ class Core {
         self::$database = new DBController("127.0.0.1", 27017, null, null, "froxynetwork");
         self::$list = array();
         // Including Routage
-        include API_DIR.DS."Config".DS."Routage.php";
+        include API_DIR.DS."config".DS."Routage.php";
         $path = self::$_requestController->getPath();
         $route = Route::getRoute($path);
         $controller = $route['controller'];
@@ -105,7 +105,7 @@ class Core {
                     break;
             }
 
-        } catch (Exception $ex) {
+        } catch (\Exception $ex) {
             // Erreur
             Response::error(Response::ERROR_NOTFOUND, "Non trouvé");
         }
@@ -150,29 +150,6 @@ class Core {
     }
 
     /**
-     * autoload classes<br />
-     * Vérifie dans les dossiers "api/model", "api/controller", "api/controller/datasourceController"
-     * @param $class
-     * @return bool true si ok
-     */
-    public static function load($class) {
-        if (self::endsWith($class, "Controller")) {
-            $path = API_DIR.DS.self::_dir[self::CONTROLLERS][0].DS.$class.".php";
-        } else if (self::endsWith($class, "Model")) {
-            $path = API_DIR.DS."model".DS.$class.".php";
-        } else if (self::endsWith($class, "Datasource")) {
-            $path = API_DIR.DS."controller".DS."DatasourceController".DS.$class.".php";
-        } else {
-            $path = WEB_DIR.DS."Core".DS.$class.".php";
-            if (!file_exists($path))
-                return false;
-        }
-        if (is_file($path))
-            return require $path;
-        return false;
-    }
-
-    /**
      * Retourne le controleur spécifique
      * @param string $name Le nom du controleur
      * @return AppController Le contrlleur spécifique
@@ -182,7 +159,8 @@ class Core {
         /**
          * @var AppController $impl
          */
-        $impl = new $file(self::$database);
+        $class = "\\Api\\Controller\\".$file;
+        $impl = new $class(self::$database);
         // Ajout des autres controleurs
         $impl->request = self::$_requestController;
         foreach (self::$list as $key => $value)

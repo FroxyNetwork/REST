@@ -22,6 +22,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+namespace Web\Core;
+
 final class Response {
     const SUCCESS_OK = 200;
     const SUCCESS_CREATED = 201;

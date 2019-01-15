@@ -22,6 +22,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+namespace Api\Controller;
+
+use Web\Controller\AppController;
+use Web\Core\Response;
+
 class TokenController extends AppController {
 
     function load() {
@@ -46,6 +52,7 @@ class TokenController extends AppController {
             $token = $_SERVER['HTTP_TOKEN'];
             return hash_equals($_SESSION['token'], $token);
         }
+        return false;
     }
 
     /**

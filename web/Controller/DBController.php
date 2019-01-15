@@ -22,6 +22,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+namespace Web\Controller;
+
+use PDO;
+use PDOException;
+
 class DBController {
     /**
      * @var string $host L'hote
@@ -44,7 +50,7 @@ class DBController {
      */
     private $dbName;
     /**
-     * @var \MongoDB\Database $db L'objet MongoDB
+     * @var PDO $db L'objet PDO
      */
     private $db;
 
