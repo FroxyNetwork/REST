@@ -32,8 +32,7 @@ function __auto_loader($class) {
         $parts[$i] = strtolower($parts[$i]);
 
     $path = ROOT.DS.implode(DS, $parts).'.php';
-
-    return require_once $path;
+    return @include_once $path;
 }
 
 spl_autoload_register("__auto_loader");
