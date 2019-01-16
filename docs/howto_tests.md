@@ -8,7 +8,7 @@ Vous devez avoir **[xdebug](https://xdebug.org/)** installé pour pouvoir lancer
 Le fichier de configuration de phpunit est situé dans le dossier tests (tests/phpunit.xml).
 Vous devez configurer Intellij Idea pour pouvoir lancer les tests automatiquement.
 1. File => Settings => Languages & Frameworks => PHP => Test Frameworks
-2. +
+2. Appuyez sur le "plus" (+)
 3. Entrez un nom (PHPUnit)
 4. "Path to phpunit.phar" => Renseignez le chemin vers le fichier tests/phpunit.phar
 5. "Default configuration file:" => Renseignez le chemin vers le fichier tests/phpunit.xml
