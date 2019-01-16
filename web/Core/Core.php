@@ -38,7 +38,7 @@ class Core {
     const _dir = [
         self::MODELS => ['model', 'Model'],
         self::CONTROLLERS => ['controller', 'Controller'],
-        self::DATASOURCES => ['controller/datasourceController', 'DataController']
+        self::DATASOURCES => ['controller'.DS.'datasourceController', 'DataController']
     ];
 
     /**
@@ -126,7 +126,7 @@ class Core {
      * Core::path("TypeIncorrect", "User");
      *  ==> <...>/api/User/DatasourceController/UserDataController.php
      *
-     * @param string $type Le type (MODELS, VIEWS, CONTROLLERS, DATASOURCES)
+     * @param string $type Le type (MODELS, CONTROLLERS, DATASOURCES)
      * @param string $name Le nom du fichier
      * @return string The path of the file.
      */
@@ -139,20 +139,22 @@ class Core {
     /**
      * Récupère le nom du fichier spécifié
      *
-     * @param string $type Le type (MODELS, VIEWS, CONTROLLERS, DATASOURCES)
+     * @param string $type Le type (MODELS, CONTROLLERS, DATASOURCES)
      * @param string $name Le nom du fichier
      * @return string Le nom du fichier (sans .php)
      */
     public static function fileName($type, $name) {
+        if (!is_int($type) || empty($name))
+            return ucfirst(strtolower($name));
         if (!empty(self::_dir[$type][0]))
-            return $name.self::_dir[$type][1];
-        return $name;
+            return ucfirst(strtolower($name)).self::_dir[$type][1];
+        return ucfirst(strtolower($name));
     }
 
     /**
      * Retourne le controleur spécifique
      * @param string $name Le nom du controleur
-     * @return AppController Le contrlleur spécifique
+     * @return AppController Le controleur spécifique
      */
     public static function getAppController($name) {
         $file = self::fileName(self::CONTROLLERS, $name);
@@ -179,11 +181,17 @@ class Core {
     }
 
     static function startsWith($haystack, $needle) {
+        if ($haystack === null)
+            return $needle === null;
         $length = strlen($needle);
         return (substr($haystack, 0, $length) === $needle);
     }
 
     static function endsWith($haystack, $needle) {
+        if ($haystack === null)
+            return $needle === null;
+        if ($needle === null)
+            return false;
         $length = strlen($needle);
 
         return $length === 0 ||
