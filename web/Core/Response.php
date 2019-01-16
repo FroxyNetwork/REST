@@ -44,9 +44,18 @@ final class Response {
     const SERVER_INTERNAL = 500;
     const SERVER_NOT_IMPLEMENTED = 501;
 
+    /**
+     * @var $test True si test
+     */
+    private static $test = false;
+
     private function __construct() {}
 
-    private static function _create($data, $code = 200, $error = false, $error_message = null) {
+    public static function _create($data, $code = 200, $error = false, $error_message = null) {
+        if (!is_int($code))
+            throw new \InvalidArgumentException("Code must be a number");
+        if (!is_bool($error))
+            throw new \InvalidArgumentException("Error must be a boolean");
         return [
             "error" => $error,
             "code" => $code,
@@ -62,6 +71,8 @@ final class Response {
      * @param int $code Le code de retour
      */
     public static function ok($data, $code = 200) {
+        if (!is_int($code))
+            throw new \InvalidArgumentException("Code must be a number");
         self::send(self::_create($data, $code));
     }
 
@@ -74,6 +85,8 @@ final class Response {
      * TODO: Custom Error ID
      */
     public static function error($errorCode, $error) {
+        if (!is_int($errorCode))
+            throw new \InvalidArgumentException("ErrorCode must be a number");
         self::send(self::_create(null, $errorCode, true, $error));
     }
 
@@ -84,13 +97,18 @@ final class Response {
         self::error(self::SERVER_NOT_IMPLEMENTED, "This method is not implemented");
     }
 
+    public static function test($test = true) {
+        self::$test = $test;
+    }
+
     /**
      * Envoyer un message au format json
      *
      * @param $data array Les données à afficher
      */
     private static function send($data) {
-        header('Content-Type:application/json');
+        if (!self::$test)
+            header('Content-Type:application/json');
         if (isset($data['code']))
             http_response_code($data['code']);
         echo json_encode($data);
