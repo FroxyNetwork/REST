@@ -69,12 +69,17 @@ class RequestController {
             $host = explode(":", $host)[0];
         $this->host = $host;
         // Port
-        $this->port = $_SERVER['SERVER_PORT'];
+        if (!empty($_SERVER['SERVER_PORT']))
+            $this->port = $_SERVER['SERVER_PORT'];
+        else
+            $this->port = 80;
         // Chemin
         $urlpath = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
         $path = dirname($urlpath);
         if ($path == "\\")
             $path = "/";
+        else if (!Core::endsWith("/", $path))
+            $path .= "/";
         $file = basename($urlpath);
         if (strpos($file, ".") === false) {
             $path .= ((Core::endsWith($path, "/")) ? "" : "/").$file;
@@ -130,7 +135,7 @@ class RequestController {
     }
 
     /**
-     * @return string[] Paramètres après le ?
+     * @return string Paramètres après le ?
      */
     function getQueryString() {
         return $this->queryString;
@@ -142,7 +147,7 @@ class RequestController {
      * @return string Retourne l'URL actuelle
      */
     function getURL($http = false, $param = false) {
-        return (($http) ? "http".(($this->https) ? "s" : "")."://" : "").$this->getHost().(($this->port != 80 && $this->port != 443) ? ":".$this->port : "").$this->getPath()."/".($this->getFile()).(($param && !empty($this->queryString)) ? "?".$this->queryString : "");
+        return (($http) ? "http".(($this->https) ? "s" : "")."://" : "").$this->getHost().(($this->port != 80 && $this->port != 443) ? ":".$this->port : "").$this->getPath().($this->getFile()).(($param && !empty($this->queryString)) ? "?".$this->queryString : "");
     }
 
     /**
