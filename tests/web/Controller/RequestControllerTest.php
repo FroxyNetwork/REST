@@ -55,7 +55,7 @@ class RequestControllerTest extends TestCase {
     }
 
     function test_methods2() {
-        // URL: https://www.google.be:8008
+        // URL: https://www.google.be:8443
         $_SERVER['HTTPS'] = "on";
         $_SERVER['HTTP_HOST'] = "www.google.be:8443";
         $_SERVER['SERVER_PORT'] = 8443;
