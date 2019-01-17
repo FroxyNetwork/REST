@@ -116,8 +116,8 @@ class ResponseTest extends TestCase {
     }
 
     function test_ok() {
-        $this->ok_test(["data" => "value"]);
-        $this->ok_test(["data" => [
+        self::ok_test(["data" => "value"]);
+        self::ok_test(["data" => [
             "test" => "test2",
             "number" => 4,
             "bool" => false,
@@ -125,7 +125,7 @@ class ResponseTest extends TestCase {
                 "value" => 4
             ]
         ]]);
-        $this->ok_test_not(["data" => [
+        self::ok_test_not(["data" => [
             "test" => "test2",
             "number" => 4,
             "bool" => false,
