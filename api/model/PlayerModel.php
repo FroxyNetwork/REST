@@ -23,6 +23,8 @@
  * SOFTWARE.
  */
 
+namespace Api\Model;
+
 /**
  * Class PlayerModel Player's class (in-game)
  */
@@ -52,11 +54,11 @@ class PlayerModel {
      */
     private $exp;
     /**
-     * @var DateTime first login
+     * @var \DateTime first login
      */
     private $firstLogin;
     /**
-     * @var DateTime last login
+     * @var \DateTime last login
      */
     private $lastLogin;
     /**
@@ -81,7 +83,7 @@ class PlayerModel {
      * @param $ip
      * @param $lang
      */
-    public function __construct(string $uuid, string $pseudo, string $displayName, int $coins, int $level, int $exp, DateTime $firstLogin, DateTime $lastLogin, string $ip, string $lang) {
+    public function __construct(string $uuid, string $pseudo, string $displayName, int $coins, int $level, int $exp, \DateTime $firstLogin, \DateTime $lastLogin, string $ip, string $lang) {
         $this->uuid = $uuid;
         $this->pseudo = $pseudo;
         $this->displayName = $displayName;
@@ -172,23 +174,23 @@ class PlayerModel {
     }
 
     /**
-     * @return DateTime
+     * @return \DateTime
      */
-    public function getFirstLogin(): DateTime {
+    public function getFirstLogin(): \DateTime {
         return $this->firstLogin;
     }
 
     /**
-     * @return DateTime
+     * @return \DateTime
      */
-    public function getLastLogin(): DateTime {
+    public function getLastLogin(): \DateTime {
         return $this->lastLogin;
     }
 
     /**
-     * @param DateTime $lastLogin
+     * @param \DateTime $lastLogin
      */
-    public function setLastLogin(DateTime $lastLogin) {
+    public function setLastLogin(\DateTime $lastLogin) {
         $this->lastLogin = $lastLogin;
     }
 

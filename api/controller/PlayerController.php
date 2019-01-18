@@ -43,7 +43,45 @@ class PlayerController extends AppController {
     }
 
     public function get($param) {
-        $player = $this->playerDataController->getUserById(1);
-        Response::ok(["player" => $player]);
+        if (Core::startsWith($param, "/"))
+            $param = substr($param, 1);
+        $ln = strlen($param);
+        $player = null;
+        if ($ln == 36) {
+            // UUID
+            $player = $this->playerDataController->getUserByUUID($param);
+        } else if ($ln >= 1 && $ln <= 20) {
+            // Name
+            $player = $this->playerDataController->getUserByPseudo($param);
+        } else {
+            Response::error(Response::ERROR_BAD_REQUEST, "The length of the search must be between 1 and 20, or equals to 36.");
+            return;
+        }
+        if (!empty($GLOBALS['errorCode'])) {
+            if ($GLOBALS['errorCode'] == PlayerDataController::ERROR_NOT_FOUND) {
+                // Player not found
+                Response::error(Response::ERROR_NOTFOUND, "Player not found");
+                return;
+            }
+            // Error
+            Response::error(Response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
+            return;
+        } else if ($player == null) {
+            // Unknown error
+            Response::error(Response::ERROR_BAD_REQUEST, "Unknown error");
+            return;
+        }
+        Response::ok([
+            "uuid" => $player->getUuid(),
+            "pseudo" => $player->getPseudo(),
+            "displayName" => "<HIDDEN>",// TODO Allow only for special ranks
+            "coins" => $player->getCoins(),
+            "level" => $player->getLevel(),
+            "exp" => $player->getExp(),
+            "firstLogin" => $player->getFirstLogin()->format('Y-m-d H:i:s'),
+            "lastLogin" => $player->getLastLogin()->format('Y-m-d H:i:s'),
+            "ip" => "<HIDDEN>",// TODO Allow only for special ranks
+            "lang" => $player->getLang()
+        ]);
     }
 }

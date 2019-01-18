@@ -25,8 +25,11 @@
 
 namespace Api\Controller\DatasourceController;
 
+use Api\Model\PlayerModel;
+
 class PlayerDataController {
     const ERROR_NOT_FOUND = 1;
+    const ERROR_UNKNOWN = 2;
     const name = "player";
     /**
      * @var \PDO $db
@@ -37,11 +40,15 @@ class PlayerDataController {
         $this->db = $db;
     }
 
-    function getUserById($id) {
+    /**
+     * @param $uuid string User uuid
+     * @return PlayerModel|bool
+     */
+    function getUserByUUID($uuid) {
         try {
-            $sql = "SELECT * FROM ".self::name." WHERE u_id=:id";
+            $sql = "SELECT * FROM ".self::name." WHERE uuid=:uuid";
             $prep = $this->db->prepare($sql);
-            $prep->bindValue(":id", $id, \PDO::PARAM_INT);
+            $prep->bindValue(":uuid", $uuid, \PDO::PARAM_STR);
             $prep->execute();
             if ($prep->rowCount() == 0) {
                 $GLOBALS['error'] = "Player Not Found !";
@@ -49,9 +56,38 @@ class PlayerDataController {
                 return false;
             }
             $result = $prep->fetch();
-            return new \PlayerModel($result['u_uuid'], $result['u_pseudo'], $result['u_displayname'], $result['u_coins'], $result['u_level'], $result['u_exp'], $result['u_first_login'], $result['u_last_login'], $result['u_ip'], $result['u_lang']);
-        } catch(\PDOException $e) {
-            $GLOBALS['error'] = $e->getMessage();
+            return new PlayerModel($result['uuid'], $result['pseudo'], $result['display_name'], $result['coins'], $result['level'], $result['exp'], new \DateTime($result['first_login']), new \DateTime($result['last_login']), $result['ip'], $result['lang']);
+        } catch(\Exception $ex) {
+            $GLOBALS['error'] = $ex->getMessage();
+            $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
+            return false;
+        } finally {
+            if (!is_null($prep))
+                $prep->closeCursor();
+            $prep = null;
+        }
+    }
+    /**
+     * @param $pseudo string Player name
+     * @return PlayerModel|bool
+     */
+    function getUserByPseudo($pseudo) {
+        try {
+            $sql = "SELECT * FROM ".self::name." WHERE pseudo=:pseudo";
+            $prep = $this->db->prepare($sql);
+            $prep->bindValue(":pseudo", $pseudo, \PDO::PARAM_STR);
+            $prep->execute();
+            if ($prep->rowCount() == 0) {
+                $GLOBALS['error'] = "Player Not Found !";
+                $GLOBALS['errorCode'] = self::ERROR_NOT_FOUND;
+                return false;
+            }
+            $result = $prep->fetch();
+            return new PlayerModel($result['uuid'], $result['pseudo'], $result['display_name'], $result['coins'], $result['level'], $result['exp'], new \DateTime($result['first_login']), new \DateTime($result['last_login']), $result['ip'], $result['lang']);
+        } catch(\Exception $ex) {
+            var_dump($ex);
+            $GLOBALS['error'] = $ex->getMessage();
+            $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
             return false;
         } finally {
             if (!is_null($prep))
