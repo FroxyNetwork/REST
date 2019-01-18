@@ -23,7 +23,6 @@
  * SOFTWARE.
  */
 
-
 namespace Tests\Web\Controller;
 
 use PHPUnit\Framework\TestCase;
