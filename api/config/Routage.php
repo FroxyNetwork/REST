@@ -28,3 +28,4 @@
 use Web\Core\Route;
 
 Route::connect("/", "Test");
+Route::connect("/player", "Player");
