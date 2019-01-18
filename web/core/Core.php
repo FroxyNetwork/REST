@@ -60,7 +60,7 @@ class Core {
         // Initialisation des controleurs
         self::$_requestController = new RequestController();
         // TODO Récupérer les paramètres depuis un fichier de config
-        self::$database = new DBController("127.0.0.1", 27017, null, null, "froxynetwork");
+        self::$database = new DBController("localhost", 3306, "root", "", "froxynetwork");
         self::$list = array();
         // Including Routage
         include API_DIR.DS."config".DS."Routage.php";
@@ -112,6 +112,7 @@ class Core {
 
         //$appController->$action($params);
         $webController->onUnload();
+        self::$database->close();
     }
 
     /**
@@ -176,7 +177,8 @@ class Core {
      */
     public static function getDataController($name) {
         $file = self::fileName(self::DATASOURCES, $name);
-        $impl = new $file(self::$database);
+        $class = "\\Api\\Controller\\DatasourceController\\".$file;
+        $impl = new $class(self::$database->get());
         return $impl;
     }
 

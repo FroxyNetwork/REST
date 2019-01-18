@@ -85,4 +85,8 @@ class DBController {
         }
         return $this->db;
     }
+
+    function close() {
+        $this->db = null;
+    }
 }
