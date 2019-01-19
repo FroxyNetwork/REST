@@ -130,6 +130,43 @@ class PlayerDataController {
         } catch (\Exception $ex) {
             $GLOBALS['error'] = $ex->getMessage();
             $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
+            return false;
+        } finally {
+            if (!is_null($prep))
+                $prep->closeCursor();
+            $prep = null;
+        }
+    }
+
+    /**
+     * @param $p PlayerModel Le joueur
+     *
+     * @return bool|PlayerModel false si erreur, ou le joueur
+     */
+    function updateUser($p) {
+        try {
+            $sql = "UPDATE ".self::name." SET pseudo=:pseudo, display_name=:displayname, coins=:coins, level=:level, exp=:exp, last_login=:lastlogin, ip=:ip, lang=:lang WHERE uuid=:uuid";
+            $prep = $this->db->prepare($sql);
+            $prep->bindValue(":pseudo", $p->getPseudo(), \PDO::PARAM_STR);
+            $prep->bindValue(":displayname", $p->getDisplayName(), \PDO::PARAM_STR);
+            $prep->bindValue(":coins", $p->getCoins(), \PDO::PARAM_INT);
+            $prep->bindValue(":level", $p->getLevel(), \PDO::PARAM_INT);
+            $prep->bindValue(":exp", $p->getExp(), \PDO::PARAM_INT);
+            $prep->bindValue(":lastlogin", Core::formatDate($p->getLastLogin()), \PDO::PARAM_STR);
+            $prep->bindValue(":ip", $p->getIp(), \PDO::PARAM_STR);
+            $prep->bindValue(":lang", $p->getLang(), \PDO::PARAM_STR);
+            $prep->bindValue(":uuid", $p->getUuid(), \PDO::PARAM_STR);
+            $prep->execute();
+            if ($prep->rowCount() != 1) {
+                $GLOBALS['error'] = "An error has occured while updating a player !";
+                $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
+                return false;
+            }
+            return $p;
+        } catch (\Exception $ex) {
+            $GLOBALS['error'] = $ex->getMessage();
+            $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
+            return false;
         } finally {
             if (!is_null($prep))
                 $prep->closeCursor();
