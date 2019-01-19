@@ -199,4 +199,14 @@ class Core {
         return $length === 0 ||
             (substr($haystack, -$length) === $needle);
     }
+
+    /**
+     * @param $dateTime \DateTime
+     * @return string Formated date
+     */
+    static function formatDate($dateTime) {
+        if ($dateTime === null)
+            return "";
+        return $dateTime->format('Y-m-d H:i:s');
+    }
 }
