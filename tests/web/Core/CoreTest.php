@@ -97,4 +97,12 @@ class CoreTest extends TestCase {
         self::assertFalse(Core::endsWith(null, ""));
         self::assertTrue(Core::endsWith(null, null));
     }
+
+    function testFormatDate() {
+        $now = new \DateTime();
+        $time = $now->getTimestamp();
+        self::assertEquals(date('Y', $time).'-'.date('m', $time).'-'.date('d', $time).' '.date('H', $time).':'.date('i', $time).':'.date('s', $time), Core::formatDate($now));
+        self::assertEquals($time, strtotime(Core::formatDate($now)));
+        self::assertEquals("", Core::formatDate(null));
+    }
 }
