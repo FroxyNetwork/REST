@@ -78,10 +78,80 @@ class PlayerController extends AppController {
             "coins" => $player->getCoins(),
             "level" => $player->getLevel(),
             "exp" => $player->getExp(),
-            "firstLogin" => $player->getFirstLogin()->format('Y-m-d H:i:s'),
-            "lastLogin" => $player->getLastLogin()->format('Y-m-d H:i:s'),
+            "firstLogin" => Core::formatDate($player->getFirstLogin()),
+            "lastLogin" => Core::formatDate($player->getLastLogin()),
             "ip" => "<HIDDEN>",// TODO Allow only for special ranks
             "lang" => $player->getLang()
         ]);
+    }
+
+    /**
+     * DATA:
+     * {
+          "uuid" => "86173d9f-f7f4-4965-8e9d-f37783bf6fa7",
+          "pseudo" => "0ddlyoko",
+          "ip" => "127.0.0.1"
+     * }
+     * Pas plus, les données par défauts vont être gérés par la bdd
+     * @param $param
+     */
+    public function post($param) {
+        $data = json_decode(file_get_contents('php://input'),TRUE);
+        if (empty($data)) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Not data found !");
+            return;
+        }
+        if (!is_array($data) || empty($data['uuid']) || empty($data['pseudo']) || empty($data['ip'])) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Invalid data value !");
+            return;
+        }
+        $uuid = $data['uuid'];
+        $pseudo = $data['pseudo'];
+        $ip = $data['ip'];
+        // Check values
+        if (strlen($uuid) != 36) {
+            Response::error(Response::ERROR_BAD_REQUEST, "UUID length must be 36 !");
+            return;
+        }
+        if (!is_string($uuid) || (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $uuid) !== 1)) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Bad UUID format !");
+            return;
+        }
+        if (strlen($pseudo) < 1 || strlen($pseudo) > 20) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Pseudo length must be between 1 and 20 !");
+            return;
+        }
+        if (strlen($ip) < 7 || strlen($ip) > 15) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Ip length must be between 7 and 15 !");
+            return;
+        }
+        if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Bad ip format !");
+            return;
+        }
+        // uuid already exist ?
+        if ($this->playerDataController->getUserByUUID($uuid)) {
+            Response::error(Response::ERROR_CONFLICT, "UUID already exist !");
+            return;
+        }
+        // player name already exist ?
+        if ($this->playerDataController->getUserByPseudo($pseudo)) {
+            Response::error(Response::ERROR_CONFLICT, "Pseudo already exist !");
+            return;
+        }
+        $p = $this->playerDataController->createUser($uuid, $pseudo, $ip);
+        Response::ok([
+            "uuid" => $p->getUuid(),
+            "pseudo" => $p->getPseudo(),
+            "displayName" => $p->getDisplayName(),
+            "coins" => $p->getCoins(),
+            "level" => $p->getLevel(),
+            "exp" => $p->getExp(),
+            "firstLogin" => Core::formatDate($p->getFirstLogin()),
+            "lastLogin" => Core::formatDate($p->getLastLogin()),
+            "ip" => $p->getIp(),
+            "lang" => $p->getLang()
+        ], Response::SUCCESS_CREATED);
+        return;
     }
 }

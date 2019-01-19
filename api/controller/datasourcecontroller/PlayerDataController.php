@@ -26,6 +26,7 @@
 namespace Api\Controller\DatasourceController;
 
 use Api\Model\PlayerModel;
+use Web\Core\Core;
 
 class PlayerDataController {
     const ERROR_NOT_FOUND = 1;
@@ -67,6 +68,7 @@ class PlayerDataController {
             $prep = null;
         }
     }
+
     /**
      * @param $pseudo string Player name
      * @return PlayerModel|bool
@@ -85,10 +87,49 @@ class PlayerDataController {
             $result = $prep->fetch();
             return new PlayerModel($result['uuid'], $result['pseudo'], $result['display_name'], $result['coins'], $result['level'], $result['exp'], new \DateTime($result['first_login']), new \DateTime($result['last_login']), $result['ip'], $result['lang']);
         } catch(\Exception $ex) {
-            var_dump($ex);
             $GLOBALS['error'] = $ex->getMessage();
             $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
             return false;
+        } finally {
+            if (!is_null($prep))
+                $prep->closeCursor();
+            $prep = null;
+        }
+    }
+
+    /**
+     * @param $uuid string L'UUID du joueur
+     * @param $pseudo string Le pseudo du joueur
+     * @param $ip string L'ip du joueur
+     *
+     * @return bool|PlayerModel false si erreur, ou le joueur
+     */
+    function createUser($uuid, $pseudo, $ip) {
+        try {
+            $now = new \DateTime();
+            $p = new PlayerModel($uuid, $pseudo, $pseudo, 0, 1, 0, $now, $now, $ip, "fr_FR");
+            $sql = "INSERT INTO ".self::name." (uuid, pseudo, display_name, coins, level, exp, first_login, last_login, ip, lang) VALUES (:uuid, :pseudo, :displayname, :coins, :level, :exp, :firstlogin, :lastlogin, :ip, :lang)";
+            $prep = $this->db->prepare($sql);
+            $prep->bindValue(":uuid", $p->getUuid(), \PDO::PARAM_STR);
+            $prep->bindValue(":pseudo", $p->getPseudo(), \PDO::PARAM_STR);
+            $prep->bindValue(":displayname", $p->getDisplayName(), \PDO::PARAM_STR);
+            $prep->bindValue(":coins", $p->getCoins(), \PDO::PARAM_INT);
+            $prep->bindValue(":level", $p->getLevel(), \PDO::PARAM_INT);
+            $prep->bindValue(":exp", $p->getExp(), \PDO::PARAM_INT);
+            $prep->bindValue(":firstlogin", Core::formatDate($p->getFirstLogin()), \PDO::PARAM_STR);
+            $prep->bindValue(":lastlogin", Core::formatDate($p->getLastLogin()), \PDO::PARAM_STR);
+            $prep->bindValue(":ip", $p->getIp(), \PDO::PARAM_STR);
+            $prep->bindValue(":lang", $p->getLang(), \PDO::PARAM_STR);
+            $prep->execute();
+            if ($prep->rowCount() != 1) {
+                $GLOBALS['error'] = "An error has occured while creating a player !";
+                $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
+                return false;
+            }
+            return $p;
+        } catch (\Exception $ex) {
+            $GLOBALS['error'] = $ex->getMessage();
+            $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
         } finally {
             if (!is_null($prep))
                 $prep->closeCursor();
