@@ -40,6 +40,7 @@ final class Response {
     const ERROR_UNAUTHORIZED = 401;
     const ERROR_FORBIDDEN = 403;
     const ERROR_NOTFOUND = 404;
+    const ERROR_CONFLICT = 409;
 
     const SERVER_INTERNAL = 500;
     const SERVER_NOT_IMPLEMENTED = 501;
