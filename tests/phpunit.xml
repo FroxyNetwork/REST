@@ -7,7 +7,7 @@
         </whitelist>
     </filter>
     <testsuites>
-        <testsuite name="Application Test Suite">
+        <testsuite name="REST">
             <directory>api</directory>
             <directory>web</directory>
         </testsuite>
