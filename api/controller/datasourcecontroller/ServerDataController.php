@@ -140,7 +140,7 @@ class ServerDataController {
     }
 
     /**
-     * @param $s ServerModel The server
+     * @param $s ServerModel Le server
      *
      * @return bool|ServerModel false si erreur, ou le serveur
      */
@@ -148,8 +148,8 @@ class ServerDataController {
         try {
             $sql = "UPDATE ".self::name." SET status=:status WHERE id=:id";
             $prep = $this->db->prepare($sql);
-            $prep->bindValue(":status", $s->getId(), \PDO::PARAM_STR);
-            $prep->bindValue(":id", $s->getStatus(), \PDO::PARAM_INT);
+            $prep->bindValue(":status", $s->getStatus(), \PDO::PARAM_STR);
+            $prep->bindValue(":id", $s->getId(), \PDO::PARAM_INT);
             $prep->execute();
             if ($prep->rowCount() != 1) {
                 $GLOBALS['error'] = "An error has occured while updating a server !";

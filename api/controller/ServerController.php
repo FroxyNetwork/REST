@@ -26,6 +26,7 @@
 namespace Api\Controller;
 
 use Api\Controller\DatasourceController\ServerDataController;
+use Api\Model\ServerStatus;
 use Web\Controller\AppController;
 use Web\Core\Core;
 use Web\Core\Response;
@@ -95,8 +96,8 @@ class ServerController extends AppController {
     /**
      * DATA:
      * {
-    "name" => "game_1",
-    "port" => 20001
+        "name" => "game_1",
+        "port" => 20001
      * }
      * @param $param
      */
@@ -146,6 +147,82 @@ class ServerController extends AppController {
             "id" => $s->getId(),
             "name" => $s->getName(),
             "port" => $s->getPort(), // TODO Allow only for special ranks
+            "status" => $s->getStatus(),
+            "creationTime" => Core::formatDate($s->getCreationTime())
+        ], Response::SUCCESS_CREATED);
+        return;
+    }
+
+    /**
+     * DATA:
+     * {
+        "status" => "STARTED"
+     * }
+     * Status peut être :
+     * - WAITING
+     * - STARTED
+     * - ENDING
+     * @param $param
+     */
+    public function put($param) {
+        if (Core::startsWith($param, "/"))
+            $param = substr($param, 1);
+        $ln = strlen($param);
+        if ($ln <= 0) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Id not found.");
+            return;
+        }
+        $id = $param;
+        $data = json_decode(file_get_contents('php://input'),TRUE);
+        // Check values
+        if (!Core::isInteger($id)) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Invalid id !");
+            return;
+        }
+        if (empty($data)) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Not data found !");
+            return;
+        }
+        if (!is_array($data) || empty($data['status'])) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Invalid data value !");
+            return;
+        }
+        $status = $data['status'];
+        if (!is_string($status)) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Status must be a string !");
+            return;
+        }
+        if ($status != ServerStatus::WAITING && $status != ServerStatus::STARTED && $status != ServerStatus::ENDING) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Status must be '" . ServerStatus::WAITING . "', '" . ServerStatus::STARTED . "' or '" . ServerStatus::ENDING . "' !");
+            return;
+        }
+        // On récupère l'ancien joueur
+        $s = $this->serverDataController->getServer($id);
+        if (!$s) {
+            Response::error(Response::ERROR_NOTFOUND, "Server not found !");
+            return;
+        }
+        // On teste si le status est bon
+        if (!ServerStatus::isAfter($status, $s->getStatus())) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Invalid status, old is " . $s->getStatus() . " !");
+            return;
+        }
+        // Tout est bon, on update les valeurs
+        $s->setStatus($status);
+        $s2 = $this->serverDataController->updateServer($s);
+        if (!empty($GLOBALS['errorCode'])) {
+            // Error
+            Response::error(Response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
+            return;
+        } else if ($s2 == null) {
+            // Unknown error
+            Response::error(Response::ERROR_BAD_REQUEST, "Unknown error");
+            return;
+        }
+        Response::ok([
+            "id" => $s->getId(),
+            "name" => $s->getName(),
+            "port" => $s->getPort(),
             "status" => $s->getStatus(),
             "creationTime" => Core::formatDate($s->getCreationTime())
         ], Response::SUCCESS_CREATED);
