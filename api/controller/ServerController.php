@@ -91,4 +91,64 @@ class ServerController extends AppController {
             Response::ok($data);
         }
     }
+
+    /**
+     * DATA:
+     * {
+    "name" => "game_1",
+    "port" => 20001
+     * }
+     * @param $param
+     */
+    public function post($param) {
+        // TODO Check if the request come from the WebSocket
+        // TODO Check if the port is already used.
+        $data = json_decode(file_get_contents('php://input'),TRUE);
+        if (empty($data)) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Data not found !");
+            return;
+        }
+        if (!is_array($data) || empty($data['name']) || !isset($data['port'])) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Invalid data value !");
+            return;
+        }
+        $name = $data['name'];
+        $port = $data['port'];
+        // Check values
+        if (!is_string($name)) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Name must be a string !");
+            return;
+        }
+        if (strlen($name) > 16) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Name length must be between 1 and 16 !");
+            return;
+        }
+        if (!Core::isInteger($port)) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Port must be a correct number !");
+            return;
+        }
+        $port = intval($port);
+        if ($port <= 0 || $port >= 65536) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Port must be between 1 and 65535 !");
+            return;
+        }
+        $s = $this->serverDataController->createServer($name, $port);
+        if (!empty($GLOBALS['errorCode'])) {
+            // Error
+            Response::error(Response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
+            return;
+        } else if ($s == null) {
+            // Unknown error
+            Response::error(Response::ERROR_BAD_REQUEST, "Unknown error");
+            return;
+        }
+        Response::ok([
+            "id" => $s->getId(),
+            "name" => $s->getName(),
+            "port" => $s->getPort(), // TODO Allow only for special ranks
+            "status" => $s->getStatus(),
+            "creationTime" => Core::formatDate($s->getCreationTime())
+        ], Response::SUCCESS_CREATED);
+        return;
+    }
 }
