@@ -209,4 +209,14 @@ class Core {
             return "";
         return $dateTime->format('Y-m-d H:i:s');
     }
+
+    /**
+     * http://php.net/manual/fr/function.is-int.php#82857
+     *
+     * @param $input ? The input
+     * @return bool true if the input is an integer, or a string that represent an integer
+     */
+    static function isInteger($input) {
+        return ctype_digit(strval($input));
+    }
 }
