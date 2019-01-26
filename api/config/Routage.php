@@ -22,10 +22,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-// Examples:
-// Index
 
 use Web\Core\Route;
 
+// Index (And sub-directories that are not in next route)
 Route::connect("/", "Test");
 Route::connect("/player", "Player");
+Route::connect("/server", "Server");
