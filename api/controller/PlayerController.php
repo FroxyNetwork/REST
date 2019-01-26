@@ -98,7 +98,7 @@ class PlayerController extends AppController {
     public function post($param) {
         $data = json_decode(file_get_contents('php://input'),TRUE);
         if (empty($data)) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Not data found !");
+            Response::error(Response::ERROR_BAD_REQUEST, "Data not found !");
             return;
         }
         if (!is_array($data) || empty($data['uuid']) || empty($data['pseudo']) || empty($data['ip'])) {
