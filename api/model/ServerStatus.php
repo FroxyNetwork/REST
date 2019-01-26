@@ -27,7 +27,7 @@ namespace Api\Model;
 
 class ServerStatus extends BasicEnum {
     /**
-     * Server is starting
+     * Server is starting (Creating directory, launching the server)
      */
     const STARTING = "STARTING";
     /**
@@ -46,4 +46,18 @@ class ServerStatus extends BasicEnum {
      * Server is ended
      */
     const ENDED = "ENDED";
+
+    /**
+     * Check if $a is after $b
+     *
+     * @param $a
+     * @param $b
+     * @return true if $a is after $b
+     */
+    static function isAfter($a, $b) {
+        $vals = self::getConstants();
+        if (!in_array($a, $vals) || !in_array($b, $vals))
+            return false;
+        return array_search($a, array_keys($vals)) > array_search($b, array_keys($vals));
+    }
 }

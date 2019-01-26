@@ -24,6 +24,7 @@
  */
 
 namespace Tests\Web\Core;
+
 use PHPUnit\Framework\TestCase;
 use Web\Core\Core;
 
