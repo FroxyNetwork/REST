@@ -98,7 +98,7 @@ class PlayerController extends AppController {
     public function post($param) {
         $data = json_decode(file_get_contents('php://input'),TRUE);
         if (empty($data)) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Not data found !");
+            Response::error(Response::ERROR_BAD_REQUEST, "Data not found !");
             return;
         }
         if (!is_array($data) || empty($data['uuid']) || empty($data['pseudo']) || empty($data['ip'])) {
@@ -258,12 +258,12 @@ class PlayerController extends AppController {
         // On récupère l'ancien joueur
         $p = $this->playerDataController->getUserByUUID($uuid);
         if (!$p) {
-            Response::error(Response::ERROR_NOTFOUND, "User not found !");
+            Response::error(Response::ERROR_NOTFOUND, "Player not found !");
             return;
         }
         // On teste si lastLogin est bien égal ou plus grand que le lastLogin sauvegardé
         if ($lastLogin <= $p->getLastLogin()) {
-            Response::error(Response::ERROR_BAD_REQUEST, "LastLogin must be greater than to saved LastLogin !");
+            Response::error(Response::ERROR_BAD_REQUEST, "LastLogin must be greater than saved LastLogin !");
             return;
         }
         // Tout est bon, on update les valeurs

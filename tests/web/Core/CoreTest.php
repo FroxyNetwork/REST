@@ -24,6 +24,7 @@
  */
 
 namespace Tests\Web\Core;
+
 use PHPUnit\Framework\TestCase;
 use Web\Core\Core;
 
@@ -104,5 +105,21 @@ class CoreTest extends TestCase {
         self::assertEquals(date('Y', $time).'-'.date('m', $time).'-'.date('d', $time).' '.date('H', $time).':'.date('i', $time).':'.date('s', $time), Core::formatDate($now));
         self::assertEquals($time, strtotime(Core::formatDate($now)));
         self::assertEquals("", Core::formatDate(null));
+    }
+
+    function testIsInteger() {
+        self::assertTrue(Core::isInteger(0));
+        self::assertTrue(Core::isInteger(10));
+        // We don't need to check if negative value is int or not in this program
+        // Maybe in the futur ?
+        //self::assertTrue(Core::isInteger(-10));
+        self::assertTrue(Core::isInteger("0"));
+        self::assertTrue(Core::isInteger("10"));
+        self::assertTrue(Core::isInteger("999999999999999999999999999999"));
+
+        self::assertFalse(Core::isInteger("string"));
+        self::assertFalse(Core::isInteger("10e4"));
+        self::assertFalse(Core::isInteger(""));
+        self::assertFalse(Core::isInteger(null));
     }
 }

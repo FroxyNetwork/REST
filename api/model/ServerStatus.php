@@ -23,9 +23,41 @@
  * SOFTWARE.
  */
 
-use Web\Core\Route;
+namespace Api\Model;
 
-// Index (And sub-directories that are not in next route)
-Route::connect("/", "Test");
-Route::connect("/player", "Player");
-Route::connect("/server", "Server");
+class ServerStatus extends BasicEnum {
+    /**
+     * Server is starting (Creating directory, launching the server)
+     */
+    const STARTING = "STARTING";
+    /**
+     * Server is waiting for players
+     */
+    const WAITING = "WAITING";
+    /**
+     * Server is started
+     */
+    const STARTED = "STARTED";
+    /**
+     * Server is ending
+     */
+    const ENDING = "ENDING";
+    /**
+     * Server is ended
+     */
+    const ENDED = "ENDED";
+
+    /**
+     * Check if $a is after $b
+     *
+     * @param $a
+     * @param $b
+     * @return true if $a is after $b
+     */
+    static function isAfter($a, $b) {
+        $vals = self::getConstants();
+        if (!in_array($a, $vals) || !in_array($b, $vals))
+            return false;
+        return array_search($a, array_keys($vals)) > array_search($b, array_keys($vals));
+    }
+}
