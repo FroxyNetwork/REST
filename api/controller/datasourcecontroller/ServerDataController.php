@@ -167,4 +167,33 @@ class ServerDataController {
             $prep = null;
         }
     }
+
+    /**
+     * @param $id int L'id du server
+     *
+     * @return bool True si fermé
+     */
+    function closeServer($id) {
+        try {
+            $sql = "UPDATE ".self::name." SET status=:status WHERE id=:id";
+            $prep = $this->db->prepare($sql);
+            $prep->bindValue(":status", ServerStatus::ENDED, \PDO::PARAM_STR);
+            $prep->bindValue(":id", $id, \PDO::PARAM_INT);
+            $prep->execute();
+            if ($prep->rowCount() != 1) {
+                $GLOBALS['error'] = "An error has occured while closing a server !";
+                $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
+                return false;
+            }
+            return true;
+        } catch (\Exception $ex) {
+            $GLOBALS['error'] = $ex->getMessage();
+            $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
+            return false;
+        } finally {
+            if (!is_null($prep))
+                $prep->closeCursor();
+            $prep = null;
+        }
+    }
 }

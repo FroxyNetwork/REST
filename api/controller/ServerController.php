@@ -27,6 +27,7 @@ namespace Api\Controller;
 
 use Api\Controller\DatasourceController\ServerDataController;
 use Api\Model\ServerStatus;
+use Grpc\Server;
 use Web\Controller\AppController;
 use Web\Core\Core;
 use Web\Core\Response;
@@ -71,7 +72,7 @@ class ServerController extends AppController {
             Response::ok([
                 "id" => $server->getId(),
                 "name" => $server->getName(),
-                "port" => $server->getPort(),// TODO Allow only for special ranks
+                "port" => $server->getPort(),// TODO Allow only from WebSocket
                 "status" => $server->getStatus(),
                 "creationTime" => Core::formatDate($server->getCreationTime())
             ]);
@@ -146,7 +147,7 @@ class ServerController extends AppController {
         Response::ok([
             "id" => $s->getId(),
             "name" => $s->getName(),
-            "port" => $s->getPort(), // TODO Allow only for special ranks
+            "port" => $s->getPort(),
             "status" => $s->getStatus(),
             "creationTime" => Core::formatDate($s->getCreationTime())
         ], Response::SUCCESS_CREATED);
@@ -227,5 +228,40 @@ class ServerController extends AppController {
             "creationTime" => Core::formatDate($s->getCreationTime())
         ], Response::SUCCESS_CREATED);
         return;
+    }
+
+    public function delete($param) {
+        if (Core::startsWith($param, "/"))
+            $param = substr($param, 1);
+        $ln = strlen($param);
+        if ($ln <= 0) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Id not found.");
+            return;
+        }
+        $id = $param;
+        // Check values
+        if (!Core::isInteger($id)) {
+            Response::error(Response::ERROR_BAD_REQUEST, "Invalid id !");
+            return;
+        }
+        // Check if the entry exists
+        $s = $this->serverDataController->getServer($id);
+
+        if (!$s) {
+            Response::error(Response::ERROR_NOTFOUND, "Server not found !");
+            return;
+        }
+        if ($s->getStatus() == ServerStatus::ENDED) {
+            Response::error(Response::ERROR_BAD_REQUEST, "This server is already ended !");
+            return;
+        }
+
+        // Update
+        if (!$this->serverDataController->closeServer($id)) {
+            // Error
+            Response::error(Response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
+            return;
+        }
+        Response::ok([]);
     }
 }
