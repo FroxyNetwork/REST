@@ -23,16 +23,7 @@
  * SOFTWARE.
  */
 
+// Variables
 include "define.php";
-
-function __auto_loader($class) {
-    $parts = explode('\\', $class);
-    $ln = count($parts);
-    for ($i = 0; $i < $ln - 1; $i++)
-        $parts[$i] = strtolower($parts[$i]);
-
-    $path = ROOT.DS.implode(DS, $parts).'.php';
-    return @include_once $path;
-}
-
-spl_autoload_register("__auto_loader");
+// AutoLoader (Composer)
+require API_DIR . DIRECTORY_SEPARATOR . "vendor" . DIRECTORY_SEPARATOR . "autoload.php";

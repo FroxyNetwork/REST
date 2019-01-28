@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit colors="true" bootstrap="web/redirect/bootstrap.php">
+	<filter>
+        <whitelist>
+            <directory suffix=".php">api</directory>
+            <directory suffix=".php">web</directory>
+            <exclude>
+                <directory suffix=".php">api/vendor</directory>
+            <file>/path/to/file</file>
+        </exclude>
+        </whitelist>
+    </filter>
+    <testsuites>
+        <testsuite name="REST">
+            <directory>tests/api</directory>
+            <directory>tests/web</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

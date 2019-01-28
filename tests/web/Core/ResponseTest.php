@@ -199,7 +199,7 @@ class ResponseTest extends TestCase {
         ob_start();
         Response::notImplemented();
         $arr = json_decode(ob_get_clean(), true);
-        self::assertIsArray($arr);
+        self::assertTrue(is_array($arr));
         self::assertTrue($arr["error"]);
         self::assertEquals(Response::SERVER_NOT_IMPLEMENTED, $arr["code"]);
         self::assertNotEmpty($arr["error_message"]);

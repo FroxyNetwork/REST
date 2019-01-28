@@ -47,7 +47,7 @@ class RequestControllerTest extends TestCase {
         ksort($arr);
         $all = $this->request->getAll();
         ksort($all);
-        self::assertIsArray($all);
+        self::assertTrue(is_array($all));
 
         self::assertSameSize($arr, $all);
         self::assertSame($arr, $all);
@@ -75,7 +75,7 @@ class RequestControllerTest extends TestCase {
         self::assertEquals("https://www.google.be:8443/", $this->request->getURL(true));
         self::assertEquals("https://www.google.be:8443/", $this->request->getURL(true, true));
         self::assertEquals("", $this->request->getQueryString());
-        self::assertIsArray($this->request->getAll());
+        self::assertTrue(is_array($this->request->getAll()));
         self::assertEmpty($this->request->getAll());
         self::assertFalse($this->request->isAJAX());
     }

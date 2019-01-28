@@ -25,6 +25,6 @@
 
 session_start();
 // Bootstrap
-require_once "bootstrap.php";
+include __DIR__.DIRECTORY_SEPARATOR."bootstrap.php";
 // Core
 \Web\Core\Core::init();
