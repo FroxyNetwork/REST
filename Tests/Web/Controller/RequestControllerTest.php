@@ -59,7 +59,7 @@ class RequestControllerTest extends TestCase {
         $_SERVER['HTTPS'] = "on";
         $_SERVER['HTTP_HOST'] = "www.google.be:8443";
         $_SERVER['SERVER_PORT'] = 8443;
-        $_SERVER['REQUEST_URI'] = "\\";
+        $_SERVER['REQUEST_URI'] = "/";
         $_SERVER['QUERY_STRING'] = "";
         $_SERVER['REQUEST_METHOD'] = "POST";
         $_GET = [];
