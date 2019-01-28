@@ -4,9 +4,9 @@
     },
 	"autoload": {
 		"psr-4": {
-			"Api\\" : "../api/",
-			"Web\\" : "../web/",
-			"Tests\\" : "../tests/"
+			"Api\\" : "../Api/",
+			"Web\\" : "../Web/",
+			"Tests\\" : "../Tests/"
 		}
 	}
 }

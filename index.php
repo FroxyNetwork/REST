@@ -27,7 +27,6 @@
  * Ce fichier est executé parce que mod_rewrite ou .htaccess sont désactivés
  */
 
-
 $redirectNotSupported = true;
 
-require "web".DIRECTORY_SEPARATOR."redirect".DIRECTORY_SEPARATOR."index.php";
+require "Web".DIRECTORY_SEPARATOR."Redirect".DIRECTORY_SEPARATOR."Index.php";

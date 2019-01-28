@@ -28,11 +28,11 @@ if (!defined('DS'))
 if (!defined('ROOT'))
     define('ROOT', dirname(dirname(dirname(__FILE__))));
 if (!defined('API_NAME'))
-    define('API_NAME', 'api');
+    define('API_NAME', 'Api');
 if (!defined('API_DIR'))
     define('API_DIR', ROOT.DS.API_NAME);
 if (!defined('WEB_NAME'))
-    define('WEB_NAME', 'web');
+    define('WEB_NAME', 'Web');
 if (!defined('WEB_DIR'))
     define('WEB_DIR', ROOT.DS.WEB_NAME);
 // TODO Récupérer l'url depuis un fichier de config

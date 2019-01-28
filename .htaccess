@@ -1,5 +1,5 @@
 <IfModule mod_rewrite.c>
    RewriteEngine on
-   RewriteRule ^$ web/redirect/    [L]
-   RewriteRule (.*) web/redirect/$1 [L]
+   RewriteRule ^$ Web/Redirect/    [L]
+   RewriteRule (.*) Web/Redirect/$1 [L]
 </IfModule>

@@ -24,6 +24,6 @@
  */
 
 // Variables
-include "define.php";
+include "Define.php";
 // AutoLoader (Composer)
-require API_DIR . DIRECTORY_SEPARATOR . "vendor" . DIRECTORY_SEPARATOR . "autoload.php";
+require API_DIR . DIRECTORY_SEPARATOR . "Vendor" . DIRECTORY_SEPARATOR . "autoload.php";
