@@ -4,9 +4,6 @@
         <whitelist>
             <directory suffix=".php">Api</directory>
             <directory suffix=".php">Web</directory>
-            <exclude>
-                <directory suffix=".php">Api/Vendor</directory>
-            </exclude>
         </whitelist>
     </filter>
     <testsuites>

@@ -25,5 +25,6 @@
 
 // Variables
 include "Define.php";
+
 // AutoLoader (Composer)
-require API_DIR . DIRECTORY_SEPARATOR . "Vendor" . DIRECTORY_SEPARATOR . "autoload.php";
+require ROOT . DIRECTORY_SEPARATOR . "vendor" . DIRECTORY_SEPARATOR . "autoload.php";

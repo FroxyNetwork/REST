@@ -16,6 +16,8 @@ This software is available under the following licenses:
 
 ## Execution
 Pour executer cette partie:
+- Télécharger le repository
 - Copiez tout le contenu sur votre serveur web
+- Executez la commande "composer install"
 - Créez une base de données "froxynetwork"
 - Importez les tables existantes. Elle se trouve dans le dossier api/controller/datasourcecontroller/froxynetwork.sql

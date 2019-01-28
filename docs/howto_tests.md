@@ -10,7 +10,7 @@ Vous devez configurer Intellij Idea pour pouvoir lancer les tests automatiquemen
 1. File => Settings => Languages & Frameworks => PHP => Test Frameworks
 2. Appuyez sur le "plus" (+)
 3. Entrez un nom (PHPUnit)
-4. "Use Composer Auto-Loader" => Renseignez le chemin vers le fichier Api/Vendor/autoload.php
+4. "Use Composer Auto-Loader" => Renseignez le chemin vers le fichier vendor/autoload.php
 5. "Default configuration file:" => Renseignez le chemin vers le fichier phpunit.xml
 6. OK
 7. Pour lancer un test, sélectionnez la configuration créée et appuyez sur "RUN"
