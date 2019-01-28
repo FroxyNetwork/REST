@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit colors="true" bootstrap="web/redirect/bootstrap.php">
+<phpunit colors="true" bootstrap="Web/Redirect/Bootstrap.php">
 	<filter>
         <whitelist>
             <directory suffix=".php">Api</directory>
