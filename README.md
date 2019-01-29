@@ -8,6 +8,7 @@ Comment [aider](https://github.com/FroxyNetwork/REST/blob/develop/docs/howto_hel
 
 ## Librairies
 - [PHPUnit](https://phpunit.de/)
+- [OAuth2-server-php](https://bshaffer.github.io/oauth2-server-php-docs/)
 
 ## License
 This software is available under the following licenses:
