@@ -83,6 +83,7 @@ class CoreTest extends TestCase {
         self::assertFalse(Core::startsWith(null, "test"));
         self::assertFalse(Core::startsWith(null, ""));
         self::assertTrue(Core::startsWith(null, null));
+        self::assertTrue(Core::startsWith("CLIENT_1_6ee56abb0d32f781f4aaf4b8b0283744", "CLIENT_1_"));
     }
 
     function testEndWith() {

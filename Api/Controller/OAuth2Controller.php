@@ -23,10 +23,24 @@
  * SOFTWARE.
  */
 
-use Web\Core\Route;
+namespace Api\Controller;
 
-// Index (And sub-directories that are not in next route)
-Route::connect("/", "Test");
-Route::connect("/player", "Player");
-Route::connect("/server", "Server");
-Route::connect("/oauth2", "OAuth2");
+use OAuth2\Request;
+use OAuth2\Server;
+use Web\Controller\AppController;
+
+class OAuth2Controller extends AppController {
+    
+    /**
+     * Get the access token
+     *
+     * @param $param
+     */
+    public function post($param) {
+        /**
+         * @var Server $server
+         */
+        $server = $this->oauth;
+        $server->handleTokenRequest(Request::createFromGlobals())->send();
+    }
+}

@@ -54,7 +54,7 @@ class Core {
     /**
      * @var array Liste des variables à ajouter aux controleurs
      */
-    private static $list;
+    private static $list = [];
 
     public static function init() {
         // Initialisation des controleurs
@@ -72,7 +72,7 @@ class Core {
          * @var $webController WebController
          */
         $webController = self::getAppController("Web");
-        $webController->onLoad(self::$list);
+        $webController->onLoad(self::$list, self::$database->get());
         try {
             $appController = self::getAppController($controller);
             if ($appController == null) {
@@ -153,6 +153,7 @@ class Core {
     }
 
     /**
+     * // TODO Sauvegarder les anciens controleurs créés (Eviter la duplication)
      * Retourne le controleur spécifique
      * @param string $name Le nom du controleur
      * @return AppController Le controleur spécifique
@@ -172,13 +173,17 @@ class Core {
     }
 
     /**
+     * // TODO Sauvegarder les anciens controleurs créés (Eviter la duplication)
      * @param string $name Le nom de la source de données
      * @return mixed La source de données spécifique
      */
     public static function getDataController($name) {
         $file = self::fileName(self::DATASOURCES, $name);
         $class = "\\Api\\Controller\\DatasourceController\\".$file;
-        $impl = new $class(self::$database->get());
+        if (self::$database != null)
+            $impl = new $class(self::$database->get());
+        else
+            $impl = new $class(null);
         return $impl;
     }
 

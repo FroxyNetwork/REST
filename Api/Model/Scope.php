@@ -23,10 +23,12 @@
  * SOFTWARE.
  */
 
-use Web\Core\Route;
+namespace Api\Model;
 
-// Index (And sub-directories that are not in next route)
-Route::connect("/", "Test");
-Route::connect("/player", "Player");
-Route::connect("/server", "Server");
-Route::connect("/oauth2", "OAuth2");
+interface Scope {
+    const SERVER_SHOW_PORT = "server_show_port";
+    const SERVER_CREATE = "server_create";
+    const PLAYER_CREATE = "player_create";
+    const PLAYER_SHOW_REALNAME = "player_show_realname";
+    const PLAYER_SHOW_IP = "player_show_ip";
+}

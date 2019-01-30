@@ -23,10 +23,31 @@
  * SOFTWARE.
  */
 
-use Web\Core\Route;
+namespace Tests\Api\Controller;
 
-// Index (And sub-directories that are not in next route)
-Route::connect("/", "Test");
-Route::connect("/player", "Player");
-Route::connect("/server", "Server");
-Route::connect("/oauth2", "OAuth2");
+use Api\Controller\ServerController;
+use PHPUnit\Framework\TestCase;
+use Web\Core\Core;
+
+class ServerControllerTest extends TestCase {
+    /**
+     * @var ServerController $serverController
+     */
+    private $serverController;
+
+    protected function setUp() {
+        $this->serverController = Core::getAppController("Server");
+    }
+
+    function testRandom() {
+        self::assertEquals(32, strlen($this->serverController->generateAuthorizationCode(32)));
+        $id = 1;
+        $client = $this->serverController->generateClientSecret($id);
+        self::assertEquals(2, count($client));
+        self::assertTrue(Core::startsWith($client[0], "CLIENT_" . $id . "_"));
+        self::assertTrue(Core::startsWith($client[1], "SECRET_" . $id . "_"));
+        self::assertEquals(41, strlen($client[0]));
+        self::assertEquals(41, strlen($client[1]));
+        self::assertNotEquals(substr($client[0], 9, strlen($client[0]) - 9), substr($client[1], 9, strlen($client[1]) - 9));
+    }
+}
