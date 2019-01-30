@@ -38,7 +38,7 @@ class ServerDataController {
      */
     private $db;
 
-    public function __construct(\PDO $db) {
+    public function __construct($db) {
         $this->db = $db;
     }
 
@@ -58,7 +58,7 @@ class ServerDataController {
                 return false;
             }
             $result = $prep->fetch();
-            return new ServerModel($result['id'], $result['name'], $result['port'], $result['status'], new \DateTime($result['creation_time']));
+            return new ServerModel($result['id'], $result['name'], $result['port'], $result['status'], new \DateTime($result['creation_time']), $result['scope']);
         } catch(\Exception $ex) {
             $GLOBALS['error'] = $ex->getMessage();
             $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
@@ -91,7 +91,7 @@ class ServerDataController {
             $arr = $prep->fetchAll();
             $result = [];
             foreach ($arr as $value)
-                $result[] = new ServerModel($value['id'], $value['name'], $value['port'], $value['status'], new \DateTime($value['creation_time']));
+                $result[] = new ServerModel($value['id'], $value['name'], $value['port'], $value['status'], new \DateTime($value['creation_time']), $value['scope']);
             return $result;
         } catch(\Exception $ex) {
             $GLOBALS['error'] = $ex->getMessage();
@@ -113,13 +113,15 @@ class ServerDataController {
     function createServer($name, $port) {
         try {
             $now = new \DateTime();
-            $s = new ServerModel(0, $name, $port, ServerStatus::STARTING, $now);
-            $sql = "INSERT INTO ".self::name." (name, port, status, creation_time) VALUES (:name, :port, :status, :creation_time)";
+            // TODO Scope
+            $s = new ServerModel(0, $name, $port, ServerStatus::STARTING, $now, "");
+            $sql = "INSERT INTO ".self::name." (name, port, status, creation_time, scope) VALUES (:name, :port, :status, :creation_time, :scope)";
             $prep = $this->db->prepare($sql);
             $prep->bindValue(":name", $s->getName(), \PDO::PARAM_STR);
             $prep->bindValue(":port", $s->getPort(), \PDO::PARAM_INT);
             $prep->bindValue(":status", $s->getStatus(), \PDO::PARAM_STR);
             $prep->bindValue(":creation_time", Core::formatDate($s->getCreationTime()), \PDO::PARAM_STR);
+            $prep->bindValue(":scope", $s->getScope(), \PDO::PARAM_STR);
             $prep->execute();
             if ($prep->rowCount() != 1) {
                 $GLOBALS['error'] = "An error has occured while creating a server !";

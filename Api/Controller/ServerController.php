@@ -26,8 +26,10 @@
 namespace Api\Controller;
 
 use Api\Controller\DatasourceController\ServerDataController;
+use Api\Model\Scope;
 use Api\Model\ServerStatus;
-use Grpc\Server;
+use OAuth2\Request;
+use OAuth2\Server;
 use Web\Controller\AppController;
 use Web\Core\Core;
 use Web\Core\Response;
@@ -45,6 +47,10 @@ class ServerController extends AppController {
     }
 
     public function get($param) {
+        /**
+         * @var Server $oauth
+         */
+        $oauth = $this->oauth;
         if (Core::startsWith($param, "/"))
             $param = substr($param, 1);
         $ln = strlen($param);
@@ -69,10 +75,13 @@ class ServerController extends AppController {
                 Response::error(Response::ERROR_BAD_REQUEST, "Unknown error");
                 return;
             }
+            $port = -1;
+            if ($oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_SHOW_PORT))
+                $port = $server->getPort();
             Response::ok([
                 "id" => $server->getId(),
                 "name" => $server->getName(),
-                "port" => $server->getPort(),// TODO Allow only from WebSocket
+                "port" => $port,
                 "status" => $server->getStatus(),
                 "creationTime" => Core::formatDate($server->getCreationTime())
             ]);
@@ -82,11 +91,12 @@ class ServerController extends AppController {
             $data = [];
             $data['size'] = count($servers);
             $data['servers'] = [];
+            $showPort = $oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_SHOW_PORT);
             foreach ($servers as $server)
                 $data['servers'][] = [
                     "id" => $server->getId(),
                     "name" => $server->getName(),
-                    "port" => $server->getPort(),// TODO Allow only for special ranks
+                    "port" => ($showPort) ? $server->getPort() : -1,
                     "status" => $server->getStatus(),
                     "creationTime" => Core::formatDate($server->getCreationTime())
                 ];
@@ -103,7 +113,15 @@ class ServerController extends AppController {
      * @param $param
      */
     public function post($param) {
-        // TODO Check if the request come from the WebSocket
+        /**
+         * @var Server $oauth
+         */
+        $oauth = $this->oauth;
+        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_CREATE)) {
+            // Invalid perm
+            Response::error(Response::ERROR_FORBIDDEN, "You don't have the permission to create servers !");
+            return;
+        }
         // TODO Check if the port is already used.
         $data = json_decode(file_get_contents('php://input'),TRUE);
         if (empty($data)) {
@@ -166,6 +184,15 @@ class ServerController extends AppController {
      * @param $param
      */
     public function put($param) {
+        /**
+         * @var Server $oauth
+         */
+        $oauth = $this->oauth;
+        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_CREATE)) {
+            // Invalid perm
+            Response::error(Response::ERROR_FORBIDDEN, "You don't have the permission to edit servers !");
+            return;
+        }
         if (Core::startsWith($param, "/"))
             $param = substr($param, 1);
         $ln = strlen($param);
@@ -181,7 +208,7 @@ class ServerController extends AppController {
             return;
         }
         if (empty($data)) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Not data found !");
+            Response::error(Response::ERROR_BAD_REQUEST, "Data not found !");
             return;
         }
         if (!is_array($data) || empty($data['status'])) {
@@ -205,7 +232,7 @@ class ServerController extends AppController {
         }
         // On teste si le status est bon
         if (!ServerStatus::isAfter($status, $s->getStatus())) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Invalid status, old is " . $s->getStatus() . " !");
+            Response::error(Response::ERROR_BAD_REQUEST, "Invalid status, current is " . $s->getStatus() . " !");
             return;
         }
         // Tout est bon, on update les valeurs
@@ -231,6 +258,15 @@ class ServerController extends AppController {
     }
 
     public function delete($param) {
+        /**
+         * @var Server $oauth
+         */
+        $oauth = $this->oauth;
+        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_CREATE)) {
+            // Invalid perm
+            Response::error(Response::ERROR_FORBIDDEN, "You don't have the permission to delete servers !");
+            return;
+        }
         if (Core::startsWith($param, "/"))
             $param = substr($param, 1);
         $ln = strlen($param);
@@ -263,5 +299,39 @@ class ServerController extends AppController {
             return;
         }
         Response::ok([]);
+    }
+
+    /**
+     * Generate a client_id and a client_secret (Used for Java servers)
+     *
+     * @param $id string The id of the server
+     * @return array Client and Secret
+     */
+    function generateClientSecret($id) {
+        $client = "CLIENT_" . $id . "_" . $this->generateAuthorizationCode(32);
+        $secret = "SECRET_" . $id . "_" . $this->generateAuthorizationCode(32);
+        return [$client, $secret];
+    }
+
+    /**
+     * @see https://github.com/bshaffer/oauth2-server-php/blob/master/src/OAuth2/ResponseType/AuthorizationCode.php#L84
+     *
+     * @param $ln int The size of the random data
+     *
+     * @return bool|string
+     */
+    function generateAuthorizationCode($ln) {
+        if (function_exists('openssl_random_pseudo_bytes')) {
+            $randomData = openssl_random_pseudo_bytes(64);
+        } elseif (function_exists('random_bytes')) {
+            $randomData = random_bytes(64);
+        } elseif (function_exists('mcrypt_create_iv')) {
+            $randomData = mcrypt_create_iv(64, MCRYPT_DEV_URANDOM);
+        } elseif (@file_exists('/dev/urandom')) { // Get 64 bytes of random data
+            $randomData = file_get_contents('/dev/urandom', false, null, 0, 64) . uniqid(mt_rand(), true);
+        } else {
+            $randomData = mt_rand() . mt_rand() . mt_rand() . mt_rand() . microtime(true) . uniqid(mt_rand(), true);
+        }
+        return substr(hash('sha512', $randomData), 0, $ln);
     }
 }
