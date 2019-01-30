@@ -267,7 +267,7 @@ class PlayerController extends AppController {
         }
         if ($exp < 0) {
             // TODO Idem que "level"
-            Response::error(Response::ERROR_BAD_REQUEST, "Level must be positive !");
+            Response::error(Response::ERROR_BAD_REQUEST, "Exp must be positive !");
             return;
         }
         // lastLogin
@@ -282,10 +282,6 @@ class PlayerController extends AppController {
             return;
         }
         // TODO Vérifier si la langue est correcte
-        if ($lang < 0) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Coins must be positive !");
-            return;
-        }
         // On récupère l'ancien joueur
         $p = $this->playerDataController->getUserByUUID($uuid);
         if (!$p) {
