@@ -22,3 +22,9 @@ Pour executer cette partie:
 - Executez la commande "composer install"
 - Créez une base de données "froxynetwork"
 - Importez les tables existantes. Elle se trouve dans le dossier api/controller/datasourcecontroller/froxynetwork.sql
+- Rendez-vous dans le dossier "extra"
+- Entrez cette commande: "php generate_client_id_secret.php"
+- Copiez la requête affichée
+- Allez sur votre base de données
+- Appuyez sur l'onglet "SQL"
+- Entrez la requête et appuyez sur "Exécuter"
