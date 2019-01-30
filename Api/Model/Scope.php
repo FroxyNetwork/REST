@@ -28,4 +28,7 @@ namespace Api\Model;
 interface Scope {
     const SERVER_SHOW_PORT = "server_show_port";
     const SERVER_CREATE = "server_create";
+    const PLAYER_CREATE = "player_create";
+    const PLAYER_SHOW_REALNAME = "player_show_realname";
+    const PLAYER_SHOW_IP = "player_show_ip";
 }

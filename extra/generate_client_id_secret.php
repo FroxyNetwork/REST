@@ -61,4 +61,4 @@ function generateAuthorizationCode($ln) {
 
 $result = generateClientSecret();
 
-echo "INSERT INTO oauth_clients (client_id, client_secret, scope) VALUES ('${result[0]}', '${result[1]}', 'server_show_port server_create');";
+echo "INSERT INTO oauth_clients (client_id, client_secret, scope) VALUES ('${result[0]}', '${result[1]}', 'server_show_port server_create player_create player_show_realname player_show_ip');";

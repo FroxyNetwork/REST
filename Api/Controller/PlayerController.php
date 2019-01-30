@@ -26,6 +26,9 @@
 namespace Api\Controller;
 
 use Api\Controller\DatasourceController\PlayerDataController;
+use Api\Model\Scope;
+use OAuth2\Request;
+use OAuth2\Server;
 use Web\Controller\AppController;
 use Web\Core\Core;
 use Web\Core\Response;
@@ -43,6 +46,10 @@ class PlayerController extends AppController {
     }
 
     public function get($param) {
+        /**
+         * @var Server $oauth
+         */
+        $oauth = $this->oauth;
         if (Core::startsWith($param, "/"))
             $param = substr($param, 1);
         $ln = strlen($param);
@@ -71,16 +78,22 @@ class PlayerController extends AppController {
             Response::error(Response::ERROR_BAD_REQUEST, "Unknown error");
             return;
         }
+        $displayName = "<HIDDEN>";
+        if ($oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::PLAYER_SHOW_REALNAME))
+            $displayName = $player->getDisplayName();
+        $ip = "<HIDDEN>";
+        if ($oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::PLAYER_SHOW_IP))
+            $ip = $player->getIp();
         Response::ok([
             "uuid" => $player->getUuid(),
             "pseudo" => $player->getPseudo(),
-            "displayName" => "<HIDDEN>",// TODO Allow only for special ranks
+            "displayName" => $displayName,
             "coins" => $player->getCoins(),
             "level" => $player->getLevel(),
             "exp" => $player->getExp(),
             "firstLogin" => Core::formatDate($player->getFirstLogin()),
             "lastLogin" => Core::formatDate($player->getLastLogin()),
-            "ip" => "<HIDDEN>",// TODO Allow only for special ranks
+            "ip" => $ip,
             "lang" => $player->getLang()
         ]);
     }
@@ -96,6 +109,15 @@ class PlayerController extends AppController {
      * @param $param
      */
     public function post($param) {
+        /**
+         * @var Server $oauth
+         */
+        $oauth = $this->oauth;
+        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::PLAYER_CREATE)) {
+            // Invalid perm
+            Response::error(Response::ERROR_FORBIDDEN, "You don't have the permission to create players !");
+            return;
+        }
         $data = json_decode(file_get_contents('php://input'),TRUE);
         if (empty($data)) {
             Response::error(Response::ERROR_BAD_REQUEST, "Data not found !");
@@ -183,6 +205,15 @@ class PlayerController extends AppController {
      * @param $param
      */
     public function put($param) {
+        /**
+         * @var Server $oauth
+         */
+        $oauth = $this->oauth;
+        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::PLAYER_CREATE)) {
+            // Invalid perm
+            Response::error(Response::ERROR_FORBIDDEN, "You don't have the permission to edit players !");
+            return;
+        }
         if (Core::startsWith($param, "/"))
             $param = substr($param, 1);
         $ln = strlen($param);
@@ -192,7 +223,7 @@ class PlayerController extends AppController {
         }
         $data = json_decode(file_get_contents('php://input'),TRUE);
         if (empty($data)) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Not data found !");
+            Response::error(Response::ERROR_BAD_REQUEST, "Data not found !");
             return;
         }
         if (!is_array($data) || empty($data['pseudo']) || empty($data['displayName']) || empty($data['lastLogin']) || empty($data['ip']) || empty($data['lang'])) {
