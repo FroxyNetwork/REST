@@ -77,9 +77,6 @@ CREATE TABLE IF NOT EXISTS `oauth_clients` (
 -- Déchargement des données de la table `oauth_clients`
 --
 
---INSERT INTO `oauth_clients` (`client_id`, `client_secret`, `redirect_uri`, `grant_types`, `scope`, `user_id`) VALUES
---('WEBSOCKET_045cfff18fe0ab8393178e7b7826f227', 'SECRET_ecfdc21a8d5022e2db64b1315b087aaf', NULL, NULL, 'server_show_port server_create player_create player_show_realname player_show_ip', NULL);
-
 -- --------------------------------------------------------
 
 --
