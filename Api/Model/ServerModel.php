@@ -49,10 +49,6 @@ class ServerModel {
      * @var \DateTime $creationTime The creation date
      */
     private $creationTime;
-    /**
-     * @var string $scope The scope (User for OAuth2)
-     */
-    private $scope;
 
     /**
      * ServerModel constructor.
@@ -61,15 +57,13 @@ class ServerModel {
      * @param int $port
      * @param \DateTime $creationTime
      * @param string $status
-     * @param string $scope
      */
-    public function __construct(int $id, string $name, int $port, string $status, \DateTime $creationTime, string $scope = "") {
+    public function __construct(int $id, string $name, int $port, string $status, \DateTime $creationTime) {
         $this->id = $id;
         $this->name = $name;
         $this->port = $port;
         $this->status = $status;
         $this->creationTime = $creationTime;
-        $this->scope = $scope;
     }
 
     /**
@@ -119,12 +113,5 @@ class ServerModel {
      */
     public function getCreationTime() : \DateTime {
         return $this->creationTime;
-    }
-
-    /**
-     * @return string The scope (User for OAuth2)
-     */
-    public function getScope() : string {
-        return $this->scope;
     }
 }
