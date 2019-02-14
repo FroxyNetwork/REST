@@ -29,4 +29,4 @@
 
 $redirectNotSupported = true;
 
-require "Web".DIRECTORY_SEPARATOR."Redirect".DIRECTORY_SEPARATOR."Index.php";
+require "Web".DIRECTORY_SEPARATOR."Redirect".DIRECTORY_SEPARATOR."index.php";
