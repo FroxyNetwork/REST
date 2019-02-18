@@ -39,7 +39,8 @@
  * @return array Client and Secret
  */
 function generateClientSecret() {
-    $client = "WEBSOCKET_" . generateAuthorizationCode(32);
+    $prefix = 'WEBSOCKET_';
+    $client = $prefix . generateAuthorizationCode(32);
     $secret = "SECRET_" . generateAuthorizationCode(32);
     return [$client, $secret];
 }
@@ -59,6 +60,6 @@ function generateAuthorizationCode($ln) {
     return substr(hash('sha512', $randomData), 0, $ln);
 }
 
-$result = generateClientSecret();
+$websocket = generateClientSecret();
 
-echo "INSERT INTO oauth_clients (client_id, client_secret, scope) VALUES ('${result[0]}', '${result[1]}', 'server_show_port server_create player_create player_show_realname player_show_ip');";
+echo "INSERT INTO oauth_clients (client_id, client_secret, scope) VALUES ('${websocket[0]}', '${websocket[1]}', 'server_show_port server_create player_create player_show_realname player_show_ip websocket_check_token');";

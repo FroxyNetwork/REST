@@ -25,6 +25,7 @@
 
 namespace Api\Controller;
 
+use Api\Controller\DatasourceController\OAuth2DataController;
 use Api\Controller\DatasourceController\ServerDataController;
 use Api\Model\Scope;
 use Api\Model\ServerStatus;
@@ -162,12 +163,30 @@ class ServerController extends AppController {
             Response::error(Response::ERROR_BAD_REQUEST, "Unknown error");
             return;
         }
+        $clientSecret = $this->generateClientSecret($s->getId());
+        /**
+         * @var $oauth2DataController OAuth2DataController
+         */
+        $oauth2DataController = $this->oauth_storage;
+		$scope = "server_show_port player_show_realname player_show_ip";
+        if (!$oauth2DataController->createClient($clientSecret[0], $clientSecret[1], $scope, $s->getId())) {
+            // Error, we delete the server created previously
+            $this->serverDataController->deleteServer($s->getId());
+
+            Response::error(Response::SERVER_INTERNAL, "Error while saving client_id and client_secret");
+            return;
+        }
+        // Ok, create
         Response::ok([
             "id" => $s->getId(),
             "name" => $s->getName(),
             "port" => $s->getPort(),
             "status" => $s->getStatus(),
-            "creationTime" => Core::formatDate($s->getCreationTime())
+            "creationTime" => Core::formatDate($s->getCreationTime()),
+            "auth" => [
+                "client_id" => $clientSecret[0],
+                "client_secret" => $clientSecret[1]
+            ]
         ], Response::SUCCESS_CREATED);
         return;
     }

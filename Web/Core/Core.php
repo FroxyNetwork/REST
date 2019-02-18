@@ -179,7 +179,7 @@ class Core {
      */
     public static function getDataController($name) {
         $file = self::fileName(self::DATASOURCES, $name);
-        $class = "\\Api\\Controller\\Datasourcecontroller\\".$file;
+        $class = "\\Api\\Controller\\DatasourceController\\".$file;
         if (self::$database != null)
             $impl = new $class(self::$database->get());
         else

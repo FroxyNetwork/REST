@@ -63,6 +63,7 @@ class WebController extends AppController {
         $server->addGrantType(new ClientCredentials($storage));
         $server->addGrantType(new RefreshToken($storage));
         $list['oauth'] = $server;
+        $list['oauth_storage'] = $storage;
     }
 
     function loadToken(array &$list) {

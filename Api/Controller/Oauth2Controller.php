@@ -30,7 +30,7 @@ use OAuth2\Server;
 use Web\Controller\AppController;
 
 class OAuth2Controller extends AppController {
-    
+
     /**
      * Get the access token
      *
@@ -38,9 +38,9 @@ class OAuth2Controller extends AppController {
      */
     public function post($param) {
         /**
-         * @var Server $server
+         * @var Server $oauth
          */
-        $server = $this->oauth;
-        $server->handleTokenRequest(Request::createFromGlobals())->send();
+        $oauth = $this->oauth;
+        $oauth->handleTokenRequest(Request::createFromGlobals())->send();
     }
 }

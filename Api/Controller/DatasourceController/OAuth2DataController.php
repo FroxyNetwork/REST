@@ -79,10 +79,56 @@ class OAuth2DataController extends Pdo {
     }
 
     /**
+     * Link an access token with an id
+     * Used to identify which server has this id
+     *
+     * @param $user_id int The id of the server
+     * @param $access_token string The token
+     *
+     * @return bool true if correctly edited
+     */
+    public function setAccessTokenId($user_id, $access_token) {
+        // if it exists, update it.
+        $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET user_id=:user_id where access_token=:access_token', $this->config['access_token_table']));
+
+        return $stmt->execute(compact('user_id', 'access_token'));
+    }
+
+    /**
+     * Check if an access token is linked to an id
+     * Used to authenticate a server through the WebSocket
+     *
+     * @param $user_id int The id of the server
+     * @param $access_token string The token
+     *
+     * @return bool True if specific id and access_token are linked
+     */
+    public function checkServer($user_id, $access_token) {
+        $stmt = $this->db->prepare($sql = sprintf('SELECT COUNT(1) from %s where user_id=:user_id and access_token=:access_token', $this->config['access_token_table']));
+        $stmt->execute(array('id' => $user_id, 'access_token' => $access_token));
+
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
+    }
+
+    /**
      * NOT USED HERE
      */
     public function setUser($username, $password, $firstName = null, $lastName = null) {
         return false;
+    }
+
+    /**
+     * @param $client_id string The client_id
+     * @param $client_secret string The client_secret
+     * @param $scope string The scope of the client
+     * @param $user_id int The id of the server
+     * @return bool True if succesfully created
+     */
+    public function createClient($client_id, $client_secret, $scope, $user_id) {
+        // if it exists, update it.
+        $stmt = $this->db->prepare($sql = sprintf('INSERT INTO %s (client_id, client_secret, scope, user_id) VALUES (:client_id, :client_secret, :scope, :user_id)', $this->config['client_table']));
+
+        return $stmt->execute(compact('client_id', 'client_secret', 'scope', 'user_id'));
     }
 
     public function getBuildSql($dbName = 'froxynetwork') {

@@ -58,7 +58,7 @@ class ServerDataController {
                 return false;
             }
             $result = $prep->fetch();
-            return new ServerModel($result['id'], $result['name'], $result['port'], $result['status'], new \DateTime($result['creation_time']), $result['scope']);
+            return new ServerModel($result['id'], $result['name'], $result['port'], $result['status'], new \DateTime($result['creation_time']));
         } catch(\Exception $ex) {
             $GLOBALS['error'] = $ex->getMessage();
             $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
@@ -91,7 +91,7 @@ class ServerDataController {
             $arr = $prep->fetchAll();
             $result = [];
             foreach ($arr as $value)
-                $result[] = new ServerModel($value['id'], $value['name'], $value['port'], $value['status'], new \DateTime($value['creation_time']), $value['scope']);
+                $result[] = new ServerModel($value['id'], $value['name'], $value['port'], $value['status'], new \DateTime($value['creation_time']));
             return $result;
         } catch(\Exception $ex) {
             $GLOBALS['error'] = $ex->getMessage();
@@ -115,13 +115,12 @@ class ServerDataController {
             $now = new \DateTime();
             // TODO Scope
             $s = new ServerModel(0, $name, $port, ServerStatus::STARTING, $now, "");
-            $sql = "INSERT INTO ".self::name." (name, port, status, creation_time, scope) VALUES (:name, :port, :status, :creation_time, :scope)";
+            $sql = "INSERT INTO ".self::name." (name, port, status, creation_time) VALUES (:name, :port, :status, :creation_time)";
             $prep = $this->db->prepare($sql);
             $prep->bindValue(":name", $s->getName(), \PDO::PARAM_STR);
             $prep->bindValue(":port", $s->getPort(), \PDO::PARAM_INT);
             $prep->bindValue(":status", $s->getStatus(), \PDO::PARAM_STR);
             $prep->bindValue(":creation_time", Core::formatDate($s->getCreationTime()), \PDO::PARAM_STR);
-            $prep->bindValue(":scope", $s->getScope(), \PDO::PARAM_STR);
             $prep->execute();
             if ($prep->rowCount() != 1) {
                 $GLOBALS['error'] = "An error has occured while creating a server !";
@@ -184,6 +183,34 @@ class ServerDataController {
             $prep->execute();
             if ($prep->rowCount() != 1) {
                 $GLOBALS['error'] = "An error has occured while closing a server !";
+                $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
+                return false;
+            }
+            return true;
+        } catch (\Exception $ex) {
+            $GLOBALS['error'] = $ex->getMessage();
+            $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
+            return false;
+        } finally {
+            if (!is_null($prep))
+                $prep->closeCursor();
+            $prep = null;
+        }
+    }
+
+    /**
+     * @param $id int L'id du server
+     *
+     * @return bool True si supprimé
+     */
+    function deleteServer($id) {
+        try {
+            $sql = "DELETE FROM ".self::name." WHERE id=:id";
+            $prep = $this->db->prepare($sql);
+            $prep->bindValue(":id", $id, \PDO::PARAM_INT);
+            $prep->execute();
+            if ($prep->rowCount() != 1) {
+                $GLOBALS['error'] = "An error has occured while deleting a server !";
                 $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
                 return false;
             }
