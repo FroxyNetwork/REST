@@ -44,6 +44,8 @@ abstract class BasicEnum {
     }
 
     public static function isValidName($name, $strict = false) {
+        if (!is_string($name))
+            return false;
         $constants = self::getConstants();
 
         if ($strict) {
@@ -55,7 +57,12 @@ abstract class BasicEnum {
     }
 
     public static function isValidValue($value, $strict = true) {
+        if (!is_string($value))
+            return false;
         $values = array_values(self::getConstants());
-        return in_array($value, $values, $strict);
+        if ($strict)
+            return in_array($value, $values);
+        else
+            return in_array(strtolower($value), array_map('strtolower', $values));
     }
 }

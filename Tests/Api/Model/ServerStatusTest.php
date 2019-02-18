@@ -25,6 +25,7 @@
 
 namespace Tests\Api\Model;
 
+use Api\Model\ServerModel;
 use Api\Model\ServerStatus;
 use PHPUnit\Framework\TestCase;
 
@@ -68,5 +69,41 @@ class ServerStatusTest extends TestCase {
         self::assertTrue(ServerStatus::isAfter(ServerStatus::ENDED, ServerStatus::STARTED));
         self::assertTrue(ServerStatus::isAfter(ServerStatus::ENDED, ServerStatus::ENDING));
         self::assertFalse(ServerStatus::isAfter(ServerStatus::ENDED, ServerStatus::ENDED));
+    }
+
+    function testIsValidName() {
+        self::assertTrue(ServerStatus::isValidName("STARTING"));
+        self::assertTrue(ServerStatus::isValidName("WAITING"));
+        self::assertTrue(ServerStatus::isValidName("STARTED"));
+        self::assertTrue(ServerStatus::isValidName("ENDING"));
+        self::assertTrue(ServerStatus::isValidName("ENDED"));
+        self::assertFalse(ServerStatus::isValidName("ENDEDE"));
+        self::assertFalse(ServerStatus::isValidName(""));
+        self::assertFalse(ServerStatus::isValidName(null));
+        self::assertFalse(ServerStatus::isValidName([]));
+
+        self::assertTrue(ServerStatus::isValidName("STARTINg"));
+        self::assertFalse(ServerStatus::isValidName("STARTINg", true));
+        self::assertFalse(ServerStatus::isValidName("startede", true));
+        self::assertTrue(ServerStatus::isValidName("ending", false));
+        self::assertFalse(ServerStatus::isValidName("ending", true));
+    }
+
+    function testIsValidValue() {
+        self::assertTrue(ServerStatus::isValidValue("STARTING"));
+        self::assertTrue(ServerStatus::isValidValue("WAITING"));
+        self::assertTrue(ServerStatus::isValidValue("STARTED"));
+        self::assertTrue(ServerStatus::isValidValue("ENDING"));
+        self::assertTrue(ServerStatus::isValidValue("ENDED"));
+        self::assertFalse(ServerStatus::isValidValue("ENDEDE"));
+        self::assertFalse(ServerStatus::isValidValue(""));
+        self::assertFalse(ServerStatus::isValidValue(null));
+        self::assertFalse(ServerStatus::isValidValue([]));
+
+        self::assertFalse(ServerStatus::isValidValue("STARTINg"));
+        self::assertFalse(ServerStatus::isValidValue("STARTINg", true));
+        self::assertFalse(ServerStatus::isValidValue("startede", false));
+        self::assertTrue(ServerStatus::isValidValue("ending", false));
+        self::assertFalse(ServerStatus::isValidValue("ending", true));
     }
 }
