@@ -69,6 +69,10 @@ class ServerStatusTest extends TestCase {
         self::assertTrue(ServerStatus::isAfter(ServerStatus::ENDED, ServerStatus::STARTED));
         self::assertTrue(ServerStatus::isAfter(ServerStatus::ENDED, ServerStatus::ENDING));
         self::assertFalse(ServerStatus::isAfter(ServerStatus::ENDED, ServerStatus::ENDED));
+
+        self::assertFalse(ServerStatus::isAfter("UNKNOWN", ServerStatus::ENDED));
+        self::assertFalse(ServerStatus::isAfter("UNKNOWN", "UNKNOWN"));
+        self::assertFalse(ServerStatus::isAfter(ServerStatus::ENDED, "UNKNOWN"));
     }
 
     function testIsValidName() {
