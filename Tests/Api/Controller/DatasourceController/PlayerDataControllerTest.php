@@ -23,43 +23,38 @@
  * SOFTWARE.
  */
 
-namespace Api\Controller;
+namespace Tests\Api\Controller\DatasourceController;
 
-use Web\Controller\AppController;
-use Web\Core\Response;
 
-class TokenController extends AppController {
+use Api\Controller\DatasourceController\PlayerDataController;
+use PHPUnit\Framework\TestCase;
+use Tests\Util\DBUtil;
+use Web\Controller\DBController;
+use Web\Core\Core;
 
-    function load() {
-        // TODO Compatibilité PHP versions
-        if (empty($_SESSION['token']))
-            $_SESSION['token'] = bin2hex(random_bytes(32));
-    }
+class PlayerDataControllerTest extends TestCase {
 
     /**
-     * Retourne le token actuel.
-     * Same as $_SESSION['token']
+     * @var DBController $dbController;
      */
-    function get($param = "") {
-        return $_SESSION['token'];
-    }
+    private $dbController;
 
     /**
-     * @return bool Vérifie si le token existe et est correct
+     * @var PlayerDataController $playerDataController
      */
-    function check() {
-        if ($this->request->isAJAX()) {
-            $token = $_SERVER['HTTP_TOKEN'];
-            return hash_equals($_SESSION['token'], $token);
-        }
-        return false;
+    private $playerDataController;
+
+    protected function setUp() {
+        $this->dbController = new DBController('localhost', 3306, 'root', '', 'froxynetwork_test');
+        Core::setDatabase($this->dbController);
+        $this->playerDataController = Core::getDataController("Player");
     }
 
-    /**
-     * Token invalide
-     */
-    function invalid() {
-        // Token invalide
-        $this->response->error($this->response::ERROR_FORBIDDEN, "Invalid Token, Please save your informations and refresh your page !");
+    function testCreateUser() {
+        $this->playerDataController->createUser("86173d9f-f7f4-4965-8e9d-f37783bf6fa7", "0ddlyoko", "127.0.0.1");
+        $oddlyoko = $this->playerDataController->getUserByUUID("86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertNotNull($oddlyoko);
+        self::assertNotFalse($oddlyoko);
+        DBUtil::clearTables($this->dbController);
     }
 }

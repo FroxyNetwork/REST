@@ -26,6 +26,7 @@
 namespace Web\Controller;
 
 use Web\Core\Core;
+use Web\Util\InputStreamUtil;
 
 class RequestController {
     /**
@@ -56,6 +57,11 @@ class RequestController {
      * @var string[] $queryString Les paramètres après le ?
      */
     var $queryString;
+
+    /**
+     * @var InputStreamUtil
+     */
+    private $inputStream;
 
     /**
      * RequestController constructor.
@@ -90,6 +96,18 @@ class RequestController {
         // Changement de $_REQUEST
         $this->params = $_REQUEST = array_merge($_POST, $_GET);
         $this->queryString = $_SERVER["QUERY_STRING"];
+        $this->inputStream = new InputStreamUtil();
+    }
+
+    /**
+     * Read the php://input stream
+     */
+    public function readInput() {
+        return $this->inputStream->read();
+    }
+
+    public function setInputStream(InputStreamUtil $inputStream) {
+        $this->inputStream = $inputStream;
     }
 
     /**

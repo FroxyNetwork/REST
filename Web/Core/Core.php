@@ -29,6 +29,7 @@ use Api\Controller\WebController;
 use Web\Controller\AppController;
 use Web\Controller\DBController;
 use Web\Controller\RequestController;
+use Web\Controller\ResponseController;
 
 class Core {
     const MODELS = 0;
@@ -47,6 +48,11 @@ class Core {
     private static $_requestController;
 
     /**
+     * @var ResponseController Le controleur de réponse
+     */
+    private static $_responseController;
+
+    /**
      * @var DBController Le controleur de données
      */
     private static $database;
@@ -59,6 +65,7 @@ class Core {
     public static function init() {
         // Initialisation des controleurs
         self::$_requestController = new RequestController();
+        self::$_responseController = new ResponseController();
         // TODO Récupérer les paramètres depuis un fichier de config
         self::$database = new DBController("localhost", 3306, "root", "", "froxynetwork");
         self::$list = array();
@@ -77,7 +84,7 @@ class Core {
             $appController = self::getAppController($controller);
             if ($appController == null) {
                 // Erreur
-                Response::error(Response::ERROR_NOTFOUND, "Non trouvé");
+                self::$_responseController->error(self::$_responseController::ERROR_NOTFOUND, "Non trouvé");
                 return;
             }
 
@@ -107,7 +114,7 @@ class Core {
 
         } catch (\Exception $ex) {
             // Erreur
-            Response::error(Response::ERROR_NOTFOUND, "Non trouvé");
+            self::$_responseController->error(self::$_responseController::ERROR_NOTFOUND, "Non trouvé");
         }
 
         //$appController->$action($params);
@@ -167,6 +174,7 @@ class Core {
         $impl = new $class(self::$database);
         // Ajout des autres controleurs
         $impl->request = self::$_requestController;
+        $impl->response = self::$_responseController;
         foreach (self::$list as $key => $value)
             $impl->$key = $value;
         return $impl;
@@ -223,5 +231,12 @@ class Core {
      */
     static function isInteger($input) {
         return ctype_digit(strval($input));
+    }
+
+    /**
+     * @param $database DBController
+     */
+    static function setDatabase($database) {
+        self::$database = $database;
     }
 }

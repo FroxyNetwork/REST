@@ -25,8 +25,6 @@
 
 namespace Web\Controller;
 
-use Web\Core\Response;
-
 abstract class AppController {
 
     /**
@@ -34,35 +32,40 @@ abstract class AppController {
      */
     public $request;
 
+    /**
+     * @var ResponseController The Response Controller
+     */
+    public $response;
+
     public function __construct() {
     }
 
     public function get($param) {
-        Response::notImplemented();
+        $this->response->notImplemented();
     }
 
     public function post($param) {
-        Response::notImplemented();
+        $this->response->notImplemented();
     }
 
     public function put($param) {
-        Response::notImplemented();
+        $this->response->notImplemented();
     }
 
     public function delete($param) {
-        Response::notImplemented();
+        $this->response->notImplemented();
     }
 
     public function head($param) {
-        Response::notImplemented();
+        $this->response->notImplemented();
     }
 
     public function options($param) {
-        Response::notImplemented();
+        $this->response->notImplemented();
     }
 
     // Autre chose
     public function other($param) {
-        Response::notImplemented();
+        $this->response->notImplemented();
     }
 }

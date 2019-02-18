@@ -23,9 +23,9 @@
  * SOFTWARE.
  */
 
-namespace Web\Core;
+namespace Web\Controller;
 
-final class Response {
+class ResponseController {
     const SUCCESS_OK = 200;
     const SUCCESS_CREATED = 201;
     const SUCCESS_ACCEPTED = 202;
@@ -44,13 +44,6 @@ final class Response {
 
     const SERVER_INTERNAL = 500;
     const SERVER_NOT_IMPLEMENTED = 501;
-
-    /**
-     * @var $test True si test
-     */
-    private static $test = false;
-
-    private function __construct() {}
 
     public static function _create($data, $code = 200, $error = false, $error_message = null) {
         if (!is_int($code))
@@ -71,10 +64,10 @@ final class Response {
      * @param ? $data Les données à envoyer
      * @param int $code Le code de retour
      */
-    public static function ok($data, $code = 200) {
+    public function ok($data, $code = 200) {
         if (!is_int($code))
             throw new \InvalidArgumentException("Code must be a number");
-        self::send(self::_create($data, $code));
+        $this->send(self::_create($data, $code));
     }
 
     /**
@@ -85,21 +78,17 @@ final class Response {
      *
      * TODO: Custom Error ID
      */
-    public static function error($errorCode, $error) {
+    public function error($errorCode, $error) {
         if (!is_int($errorCode))
             throw new \InvalidArgumentException("ErrorCode must be a number");
-        self::send(self::_create(null, $errorCode, true, $error));
+        $this->send(self::_create(null, $errorCode, true, $error));
     }
 
     /**
      * Envoyer un message d'erreur "NOT_IMPLEMENTED"
      */
-    public static function notImplemented() {
-        self::error(self::SERVER_NOT_IMPLEMENTED, "This method is not implemented");
-    }
-
-    public static function test($test = true) {
-        self::$test = $test;
+    public function notImplemented() {
+        $this->error(self::SERVER_NOT_IMPLEMENTED, "This method is not implemented");
     }
 
     /**
@@ -107,9 +96,8 @@ final class Response {
      *
      * @param $data array Les données à afficher
      */
-    private static function send($data) {
-        if (!self::$test)
-            header('Content-Type:application/json');
+    protected function send($data) {
+        header('Content-Type:application/json');
         if (isset($data['code']))
             http_response_code($data['code']);
         echo json_encode($data);
