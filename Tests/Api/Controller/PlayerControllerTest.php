@@ -33,14 +33,10 @@ use Tests\Util\OAuthServerUtil;
 use Tests\Util\RequestControllerImpl;
 use Tests\Util\ResponseControllerImpl;
 use Web\Controller\DBController;
+use Web\Controller\ResponseController;
 use Web\Core\Core;
 
 class PlayerControllerTest extends TestCase {
-
-    /**
-     * @var InputStreamImpl $inputStreamUtil
-     */
-    private $inputStreamUtil;
 
     /**
      * @var DBController $dbController;
@@ -53,6 +49,16 @@ class PlayerControllerTest extends TestCase {
     private $playerController;
 
     /**
+     * @var OAuthServerUtil $oauth
+     */
+    private $oauth;
+
+    /**
+     * @var InputStreamImpl $inputStreamUtil
+     */
+    private $inputStreamUtil;
+
+    /**
      * @var ResponseControllerImpl $responseController
      */
     private $responseController;
@@ -61,11 +67,13 @@ class PlayerControllerTest extends TestCase {
         $this->dbController = new DBController('localhost', 3306, 'root', '', 'froxynetwork_test');
         Core::setDatabase($this->dbController);
         $this->playerController = Core::getAppController("Player");
-        $this->playerController->oauth = new OAuthServerUtil();
+        $this->oauth = new OAuthServerUtil();
+        $this->playerController->oauth = $this->oauth;
         $this->inputStreamUtil = new InputStreamImpl();
         $this->playerController->request = new RequestControllerImpl();
         $this->playerController->request->setInputStream($this->inputStreamUtil);
         $this->responseController = new ResponseControllerImpl();
+        $this->responseController->setEcho(false);
         $this->playerController->response = $this->responseController;
         DBUtil::clearTables($this->dbController);
     }
@@ -74,7 +82,104 @@ class PlayerControllerTest extends TestCase {
         // Empty data
         $this->inputStreamUtil->setText('');
         $this->playerController->post("/");
-        self::assertError($this->responseController->getLastData(), 400);
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        // Not UUID
+        $this->inputStreamUtil->setText('{"pseudo":"0ddlyoko", "ip":"127.0.0.1"}');
+        $this->playerController->post("/");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        // Not Pseudo
+        $this->inputStreamUtil->setText('{"uuid":"86173d9f-f7f4-4965-8e9d-f37783bf6fa7", "ip":"127.0.0.1"}');
+        $this->playerController->post("/");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        // Not Ip
+        $this->inputStreamUtil->setText('{"uuid": "86173d9f-f7f4-4965-8e9d-f37783bf6fa7", "pseudo":"0ddlyoko"}');
+        $this->playerController->post("/");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        // UUID length not correct
+        $this->inputStreamUtil->setText('{"uuid": "86173d9f-f7f4-4965-8e9d-f37783bf6fa", "pseudo":"0ddlyoko", "ip":"127.0.0.1"}');
+        $this->playerController->post("/");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        // UUID value not correct
+        $this->inputStreamUtil->setText('{"uuid": "86173d9f-f7f4-4965-8e9d-f37783bf6fag", "pseudo":"0ddlyoko", "ip":"127.0.0.1"}');
+        $this->playerController->post("/");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        // Pseudo length not correct
+        $this->inputStreamUtil->setText('{"uuid": "86173d9f-f7f4-4965-8e9d-f37783bf6fa7", "pseudo":"0ddlyokoeeeeeeeeeeeeeeeeeeeee", "ip":"127.0.0.1"}');
+        $this->playerController->post("/");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        // Ip length not correct
+        $this->inputStreamUtil->setText('{"uuid": "86173d9f-f7f4-4965-8e9d-f37783bf6fa7", "pseudo":"0ddlyoko", "ip":"1.0.0."}');
+        $this->playerController->post("/");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        // Ip format not correct
+        $this->inputStreamUtil->setText('{"uuid": "86173d9f-f7f4-4965-8e9d-f37783bf6fa7", "pseudo":"0ddlyoko", "ip":"127.0.0."}');
+        $this->playerController->post("/");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        // Correct
+        $this->inputStreamUtil->setText('{"uuid": "86173d9f-f7f4-4965-8e9d-f37783bf6fa7", "pseudo":"0ddlyoko", "ip":"127.0.0.1"}');
+        $this->playerController->post("/");
+        self::assertFalse($this->responseController->getLastData()['error']);
+        $user = $this->responseController->getLastData()['data'];
+        self::assertEquals("86173d9f-f7f4-4965-8e9d-f37783bf6fa7", $user['uuid']);
+        self::assertEquals("0ddlyoko", $user['pseudo']);
+        self::assertEquals("127.0.0.1", $user['ip']);
+        // UUID already exists
+        $this->inputStreamUtil->setText('{"uuid": "86173d9f-f7f4-4965-8e9d-f37783bf6fa7", "pseudo":"0ddlyoko", "ip":"127.0.0.1"}');
+        $this->playerController->post("/");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_CONFLICT);
+        // Pseudo already exists
+        $this->inputStreamUtil->setText('{"uuid": "86173d9f-f7f4-4965-8e9d-f37783bf6fa6", "pseudo":"0ddlyoko", "ip":"127.0.0.1"}');
+        $this->playerController->post("/");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_CONFLICT);
+        // No permission
+        $this->oauth->setBool(false);
+        $this->inputStreamUtil->setText('{"uuid": "86173d9f-f7f4-4965-8e9d-f37783bf6fa8", "pseudo":"1ddlyoko", "ip":"127.0.0.1"}');
+        $this->playerController->post("/");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_FORBIDDEN);
+        // Go Back
+        $this->oauth->setBool(true);
+    }
+
+    function testGet() {
+        // Add player (for test)
+        $this->inputStreamUtil->setText('{"uuid": "86173d9f-f7f4-4965-8e9d-f37783bf6fa7", "pseudo":"0ddlyoko", "ip":"127.0.0.1"}');
+        $this->playerController->post("/");
+
+        // No player
+        $this->playerController->get("/");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+
+        // Player not found
+        $this->playerController->get("/1ddlyoko");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_NOTFOUND);
+        // UUID not found
+        $this->playerController->get("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_NOTFOUND);
+
+        // Player exist
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+        $this->playerController->get("/0ddlyoko");
+        self::assertFalse($this->responseController->getLastData()['error']);
+        $user = $this->responseController->getLastData()['data'];
+        self::assertEquals("86173d9f-f7f4-4965-8e9d-f37783bf6fa7", $user['uuid']);
+        self::assertEquals("0ddlyoko", $user['pseudo']);
+        self::assertEquals("127.0.0.1", $user['ip']);
+        self::assertEquals("0ddlyoko", $user['displayName']);
+
+        // No permission
+        $this->oauth->setBool(false);
+
+        $this->playerController->get("/0ddlyoko");
+        self::assertFalse($this->responseController->getLastData()['error']);
+        $user = $this->responseController->getLastData()['data'];
+        self::assertEquals("86173d9f-f7f4-4965-8e9d-f37783bf6fa7", $user['uuid']);
+        self::assertEquals("0ddlyoko", $user['pseudo']);
+        self::assertEquals("<HIDDEN>", $user['ip']);
+        self::assertEquals("<HIDDEN>", $user['displayName']);
+
+        // Go Back
+        $this->oauth->setBool(true);
     }
 
     function assertError(array $data, int $code) {

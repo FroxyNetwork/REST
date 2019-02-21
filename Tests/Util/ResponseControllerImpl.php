@@ -29,14 +29,21 @@ use Web\Controller\ResponseController;
 
 class ResponseControllerImpl extends ResponseController {
     private $lastData;
+    private $echo = true;
 
     protected function send($data) {
         $this->lastData = $data;
-        http_response_code($data['code']);
-        echo json_encode($data);
+        if ($this->echo) {
+            http_response_code($data['code']);
+            echo json_encode($data);
+        }
     }
 
     public function getLastData() {
         return $this->lastData;
+    }
+
+    public function setEcho($echo) {
+        $this->echo = $echo;
     }
 }
