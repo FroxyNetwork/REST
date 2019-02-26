@@ -238,11 +238,6 @@ class PlayerController extends AppController {
         $lastLogin = $data['lastLogin'];
         $ip = $data['ip'];
         $lang = $data['lang'];
-        // Check values
-        if (strlen($uuid) != 36) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "UUID length must be 36 !");
-            return;
-        }
         if (!is_string($uuid) || (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $uuid) !== 1)) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, "Bad UUID format !");
             return;
@@ -287,7 +282,7 @@ class PlayerController extends AppController {
             $this->response->error($this->response::ERROR_NOTFOUND, "Player not found !");
             return;
         }
-        // On teste si lastLogin est bien égal ou plus grand que le lastLogin sauvegardé
+        // On teste si lastLogin est bien égal ou plus petit que le lastLogin sauvegardé
         if ($lastLogin <= $p->getLastLogin()) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, "LastLogin must be greater than saved LastLogin !");
             return;
@@ -301,6 +296,7 @@ class PlayerController extends AppController {
         $p->setLastLogin($lastLogin);
         $p->setIp($ip);
         $p->setLevel($level);
+        $p->setLang($lang);
         $p2 = $this->playerDataController->updateUser($p);
         if (!empty($GLOBALS['errorCode'])) {
             // Error

@@ -182,6 +182,182 @@ class PlayerControllerTest extends TestCase {
         $this->oauth->setBool(true);
     }
 
+    function testPut() {
+        // Add player (for test)
+        $this->inputStreamUtil->setText('{"uuid": "86173d9f-f7f4-4965-8e9d-f37783bf6fa7", "pseudo":"0ddlyoko", "ip":"127.0.0.1"}');
+        $this->playerController->post("/");
+
+        // No permission
+        $this->oauth->setBool(false);
+        $this->inputStreamUtil->setText('{"pseudo":"0ddlyoko", "displayName":"0ddlyoko", "coins":5, "level":2, "exp":12, "lastLogin":"'.Core::formatDate( new \DateTime()).'", "ip":"127.0.0.1", "lang":"fr_FR"}');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_FORBIDDEN);
+
+        // Go Back
+        $this->oauth->setBool(true);
+
+        // Invalid length
+        $this->playerController->put("/");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        // Invalid length
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // Empty data
+        $this->inputStreamUtil->setText('');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // Error
+        $this->inputStreamUtil->setText('notjson');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // Not pseudo
+        $this->inputStreamUtil->setText('{"displayName":"0ddlyoko", "coins":5, "level":2, "exp":12, "lastLogin":"'.Core::formatDate(new \DateTime()).'", "ip":"127.0.0.1", "lang":"fr_FR"}');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // Not displayName
+        $this->inputStreamUtil->setText('{"pseudo":"0ddlyoko", "coins":5, "level":2, "exp":12, "lastLogin":"'.Core::formatDate(new \DateTime()).'", "ip":"127.0.0.1", "lang":"fr_FR"}');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // Not lastLogin
+        $this->inputStreamUtil->setText('{"pseudo":"0ddlyoko","displayName":"0ddlyoko", "coins":5, "level":2, "exp":12, "ip":"127.0.0.1", "lang":"fr_FR"}');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // Not ip
+        $this->inputStreamUtil->setText('{"pseudo":"0ddlyoko","displayName":"0ddlyoko", "coins":5, "level":2, "exp":12, "lastLogin":"'.Core::formatDate(new \DateTime()).'", "lang":"fr_FR"}');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // Not lang
+        $this->inputStreamUtil->setText('{"pseudo":"0ddlyoko","displayName":"0ddlyoko", "coins":5, "level":2, "exp":12, "lastLogin":"'.Core::formatDate(new \DateTime()).'", "ip":"127.0.0.1"}');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // Invalid UUID
+        $this->inputStreamUtil->setText('{"pseudo":"0ddlyoko","displayName":"0ddlyoko", "coins":5, "level":2, "exp":12, "lastLogin":"'.Core::formatDate(new \DateTime()).'", "ip":"127.0.0.1", "lang":"fr_FR"}');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fag");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // Invalid Pseudo length
+        $this->inputStreamUtil->setText('{"pseudo":"","displayName":"0ddlyoko", "coins":5, "level":2, "exp":12, "lastLogin":"'.Core::formatDate(new \DateTime()).'", "ip":"127.0.0.1", "lang":"fr_FR"}');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // Invalid Pseudo length
+        $this->inputStreamUtil->setText('{"pseudo":"0ddlyokoooooooooooooo","displayName":"0ddlyoko", "coins":5, "level":2, "exp":12, "lastLogin":"'.Core::formatDate(new \DateTime()).'", "ip":"127.0.0.1", "lang":"fr_FR"}');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // Invalid DisplayName length
+        $this->inputStreamUtil->setText('{"pseudo":"0ddlyoko","displayName":"", "coins":5, "level":2, "exp":12, "lastLogin":"'.Core::formatDate(new \DateTime()).'", "ip":"127.0.0.1", "lang":"fr_FR"}');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // Invalid DisplayName length
+        $this->inputStreamUtil->setText('{"pseudo":"0ddlyoko","displayName":"0ddlyokoooooooooooooo", "coins":5, "level":2, "exp":12, "lastLogin":"'.Core::formatDate(new \DateTime()).'", "ip":"127.0.0.1", "lang":"fr_FR"}');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // Invalid Coins
+        $this->inputStreamUtil->setText('{"pseudo":"0ddlyoko","displayName":"0ddlyoko", "coins":-1, "level":2, "exp":12, "lastLogin":"'.Core::formatDate(new \DateTime()).'", "ip":"127.0.0.1", "lang":"fr_FR"}');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // Invalid Level
+        $this->inputStreamUtil->setText('{"pseudo":"0ddlyoko","displayName":"0ddlyoko", "coins":5, "level":-1, "exp":12, "lastLogin":"'.Core::formatDate(new \DateTime()).'", "ip":"127.0.0.1", "lang":"fr_FR"}');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // Invalid Exp
+        $this->inputStreamUtil->setText('{"pseudo":"0ddlyoko","displayName":"0ddlyoko", "coins":5, "level":2, "exp":-1, "lastLogin":"'.Core::formatDate(new \DateTime()).'", "ip":"127.0.0.1", "lang":"fr_FR"}');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // Invalid LastLogin format
+        $this->inputStreamUtil->setText('{"pseudo":"0ddlyoko","displayName":"0ddlyoko", "coins":5, "level":2, "exp":12, "lastLogin":"INVALID", "ip":"127.0.0.1", "lang":"fr_FR"}');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // Invalid Ip
+        $this->inputStreamUtil->setText('{"pseudo":"0ddlyoko","displayName":"0ddlyoko", "coins":5, "level":2, "exp":12, "lastLogin":"'.Core::formatDate(new \DateTime()).'", "ip":"127.0.0.", "lang":"fr_FR"}');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // Player not found
+        $this->inputStreamUtil->setText('{"pseudo":"0ddlyoko","displayName":"0ddlyoko", "coins":5, "level":2, "exp":12, "lastLogin":"'.Core::formatDate(new \DateTime()).'", "ip":"127.0.0.1", "lang":"fr_FR"}');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa6");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_NOTFOUND);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // LastLogin < current LastLogin
+        $dateTime = new \DateTime();
+        $dateTime->add(\DateInterval::createFromDateString('yesterday'));
+        $this->inputStreamUtil->setText('{"pseudo":"0ddlyoko","displayName":"0ddlyoko", "coins":5, "level":2, "exp":12, "lastLogin":"'.Core::formatDate($dateTime).'", "ip":"127.0.0.1", "lang":"fr_FR"}');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
+
+        // All is ok
+        $dateTime = new \DateTime();
+        $dateTime->add(new \DateInterval("P1D"));
+        $this->inputStreamUtil->setText('{"pseudo":"1ddlyoko","displayName":"1ddlyoko", "coins":50, "level":20, "exp":120, "lastLogin":"'.Core::formatDate($dateTime).'", "ip":"127.0.0.2", "lang":"en_US"}');
+        $this->playerController->put("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        self::assertFalse($this->responseController->getLastData()['error']);
+        $user = $this->responseController->getLastData()['data'];
+        self::assertEquals("86173d9f-f7f4-4965-8e9d-f37783bf6fa7", $user['uuid']);
+        self::assertEquals("1ddlyoko", $user['pseudo']);
+        self::assertEquals("1ddlyoko", $user['displayName']);
+        self::assertEquals(50, $user['coins']);
+        self::assertEquals(20, $user['level']);
+        self::assertEquals(120, $user['exp']);
+        self::assertEquals(Core::formatDate($dateTime), $user['lastLogin']);
+        self::assertEquals("127.0.0.2", $user['ip']);
+        self::assertEquals("en_US", $user['lang']);
+    }
+
     function assertError(array $data, int $code) {
         if (!isset($data) || empty($data))
             return true;
