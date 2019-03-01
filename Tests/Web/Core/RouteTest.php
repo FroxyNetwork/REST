@@ -52,5 +52,15 @@ class RouteTest extends TestCase {
             "controller" => "User",
             "param" => "/F"
         ], Route::getRoute("/USER/F"));
+
+        Route::connect("/user/get", "UserGet");
+        self::assertEquals([
+            "controller" => "UserGet",
+            "param" => "/0ddlyoko"
+        ], Route::getRoute("/user/get/0ddlyoko"));
+        self::assertEquals([
+            "controller" => "User",
+            "param" => ""
+        ], Route::getRoute("/user"));
     }
 }
