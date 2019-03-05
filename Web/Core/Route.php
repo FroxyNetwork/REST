@@ -100,7 +100,7 @@ class Route {
                 // Pour chaques paramètres dans la route, nous vérifions si c'est le bon
                 $correct = true;
                 for (; $i < count($rExplode) && $correct; $i++)
-                    if ($rExplode[$i] != $urlExplode[$i])
+                    if (strtolower($rExplode[$i]) != strtolower($urlExplode[$i]))
                         $correct = false;
                 if (!$correct)
                     continue;
