@@ -61,8 +61,8 @@ class ServerController extends AppController {
                 return;
             }
             $server = $this->serverDataController->getServer($param);
-            if (!empty($GLOBALS['errorCode'])) {
-                if ($GLOBALS['errorCode'] == ServerDataController::ERROR_NOT_FOUND) {
+            if (!$server) {
+                if (!empty($GLOBALS['errorCode']) && $GLOBALS['errorCode'] == ServerDataController::ERROR_NOT_FOUND) {
                     // Server not found
                     $this->response->error($this->response::ERROR_NOTFOUND, "Server not found");
                     return;
@@ -153,13 +153,12 @@ class ServerController extends AppController {
             return;
         }
         $s = $this->serverDataController->createServer($name, $port);
-        if (!empty($GLOBALS['errorCode'])) {
+        if (!$s) {
             // Error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
-            return;
-        } else if ($s == null) {
-            // Unknown error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Unknown error");
+            if (!empty($GLOBALS['errorCode']))
+                $this->response->error($this->response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
+            else
+                $this->response->error($this->response::ERROR_BAD_REQUEST, "Unknown error");
             return;
         }
         $clientSecret = $this->generateClientSecret($s->getId());
@@ -255,16 +254,13 @@ class ServerController extends AppController {
         }
         // Tout est bon, on update les valeurs
         $s->setStatus($status);
-        unset($GLOBALS['errorCode']);
-        unset($GLOBALS['error']);
         $s2 = $this->serverDataController->updateServer($s);
-        if (!empty($GLOBALS['errorCode'])) {
+        if (!$s2) {
             // Error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
-            return;
-        } else if ($s2 == null) {
-            // Unknown error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Unknown error");
+            if (!empty($GLOBALS['errorCode']))
+                $this->response->error($this->response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
+            else
+                $this->response->error($this->response::ERROR_BAD_REQUEST, "Unknown error");
             return;
         }
         $this->response->ok([
