@@ -242,7 +242,7 @@ class ServerController extends AppController {
             $this->response->error($this->response::ERROR_BAD_REQUEST, "Status must be '" . ServerStatus::WAITING . "', '" . ServerStatus::STARTED . "' or '" . ServerStatus::ENDING . "' !");
             return;
         }
-        // On récupère l'ancien joueur
+        // On récupère l'ancien serveur
         $s = $this->serverDataController->getServer($id);
         if (!$s) {
             $this->response->error($this->response::ERROR_NOTFOUND, "Server not found !");
@@ -255,6 +255,8 @@ class ServerController extends AppController {
         }
         // Tout est bon, on update les valeurs
         $s->setStatus($status);
+        unset($GLOBALS['errorCode']);
+        unset($GLOBALS['error']);
         $s2 = $this->serverDataController->updateServer($s);
         if (!empty($GLOBALS['errorCode'])) {
             // Error
