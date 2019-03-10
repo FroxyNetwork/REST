@@ -2,8 +2,11 @@
 <phpunit colors="true" bootstrap="Web/Redirect/Bootstrap.php">
 	<filter>
         <whitelist>
-            <directory suffix=".php">Api</directory>
-            <directory suffix=".php">Web</directory>
+            <directory suffix=".php">Api/Controller</directory>
+            <directory suffix=".php">Api/Model</directory>
+            <directory suffix=".php">Web/Controller</directory>
+            <directory suffix=".php">Web/Core</directory>
+            <directory suffix=".php">Web/Util</directory>
         </whitelist>
     </filter>
     <testsuites>

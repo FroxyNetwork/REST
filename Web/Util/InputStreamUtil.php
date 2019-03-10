@@ -23,43 +23,14 @@
  * SOFTWARE.
  */
 
-namespace Api\Controller;
+namespace Web\Util;
 
-use Web\Controller\AppController;
-use Web\Core\Response;
-
-class TokenController extends AppController {
-
-    function load() {
-        // TODO Compatibilité PHP versions
-        if (empty($_SESSION['token']))
-            $_SESSION['token'] = bin2hex(random_bytes(32));
-    }
+class InputStreamUtil {
 
     /**
-     * Retourne le token actuel.
-     * Same as $_SESSION['token']
+     * @return false|string The content in php://input
      */
-    function get($param = "") {
-        return $_SESSION['token'];
-    }
-
-    /**
-     * @return bool Vérifie si le token existe et est correct
-     */
-    function check() {
-        if ($this->request->isAJAX()) {
-            $token = $_SERVER['HTTP_TOKEN'];
-            return hash_equals($_SESSION['token'], $token);
-        }
-        return false;
-    }
-
-    /**
-     * Token invalide
-     */
-    function invalid() {
-        // Token invalide
-        $this->response->error($this->response::ERROR_FORBIDDEN, "Invalid Token, Please save your informations and refresh your page !");
+    function read() {
+        return file_get_contents('php://input');
     }
 }

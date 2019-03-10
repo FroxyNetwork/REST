@@ -26,25 +26,24 @@
 namespace Api\Controller;
 
 use Web\Controller\AppController;
-use Web\Core\Response;
 
 class TestController extends AppController {
 
 
     public function get($param) {
-        Response::ok(["METHODE" => "GET", "URL" => $this->request->getURL(true, true)]);
+        $this->response->ok(["METHODE" => "GET", "URL" => $this->request->getURL(true, true)]);
        // Response::send(["Token" => $this->token->get()]);
     }
 
     public function post($param) {
-        Response::ok(["METHODE" => "POST", "URL" => $this->request->getURL(true, true)]);
+        $this->response->ok(["METHODE" => "POST", "URL" => $this->request->getURL(true, true)]);
     }
 
     public function put($param) {
-        Response::ok(["METHODE" => "PUT"]);
+        $this->response->ok(["METHODE" => "PUT"]);
     }
 
     public function delete($param) {
-        Response::ok(["METHODE" => "DELETE"]);
+        $this->response->ok(["METHODE" => "DELETE"]);
     }
 }

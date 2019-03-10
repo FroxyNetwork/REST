@@ -23,43 +23,32 @@
  * SOFTWARE.
  */
 
-namespace Api\Controller;
+namespace Tests\Api\Model;
 
-use Web\Controller\AppController;
-use Web\Core\Response;
+use Api\Model\PlayerModel;
+use Api\Model\ServerModel;
+use PHPUnit\Framework\TestCase;
 
-class TokenController extends AppController {
+class ServerModelTest extends TestCase {
 
-    function load() {
-        // TODO Compatibilité PHP versions
-        if (empty($_SESSION['token']))
-            $_SESSION['token'] = bin2hex(random_bytes(32));
+    function testGetServer() {
+        $now = new \DateTime('now');
+        $server = new ServerModel(1, "GAME_01", 25565, "STARTING", $now);
+        self::assertEquals(1, $server->getId());
+        self::assertEquals("GAME_01", $server->getName());
+        self::assertEquals(25565, $server->getPort());
+        self::assertEquals("STARTING", $server->getStatus());
+        self::assertEquals($now, $server->getCreationTime());
     }
 
-    /**
-     * Retourne le token actuel.
-     * Same as $_SESSION['token']
-     */
-    function get($param = "") {
-        return $_SESSION['token'];
-    }
+    function testSetServer() {
+        $now = new \DateTime('now');
+        $server = new ServerModel(1, "GAME_01", 25565, "STARTING", $now);
 
-    /**
-     * @return bool Vérifie si le token existe et est correct
-     */
-    function check() {
-        if ($this->request->isAJAX()) {
-            $token = $_SERVER['HTTP_TOKEN'];
-            return hash_equals($_SESSION['token'], $token);
-        }
-        return false;
-    }
+        $server->setId(2);
+        $server->setStatus("STARTED");
 
-    /**
-     * Token invalide
-     */
-    function invalid() {
-        // Token invalide
-        $this->response->error($this->response::ERROR_FORBIDDEN, "Invalid Token, Please save your informations and refresh your page !");
+        self::assertEquals(2, $server->getId());
+        self::assertEquals("STARTED", $server->getStatus());
     }
 }

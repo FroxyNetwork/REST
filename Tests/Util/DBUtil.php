@@ -23,43 +23,23 @@
  * SOFTWARE.
  */
 
-namespace Api\Controller;
+namespace Tests\Util;
 
-use Web\Controller\AppController;
-use Web\Core\Response;
+use Web\Controller\DBController;
 
-class TokenController extends AppController {
+class DBUtil {
 
-    function load() {
-        // TODO Compatibilité PHP versions
-        if (empty($_SESSION['token']))
-            $_SESSION['token'] = bin2hex(random_bytes(32));
-    }
-
-    /**
-     * Retourne le token actuel.
-     * Same as $_SESSION['token']
-     */
-    function get($param = "") {
-        return $_SESSION['token'];
-    }
-
-    /**
-     * @return bool Vérifie si le token existe et est correct
-     */
-    function check() {
-        if ($this->request->isAJAX()) {
-            $token = $_SERVER['HTTP_TOKEN'];
-            return hash_equals($_SESSION['token'], $token);
-        }
-        return false;
-    }
-
-    /**
-     * Token invalide
-     */
-    function invalid() {
-        // Token invalide
-        $this->response->error($this->response::ERROR_FORBIDDEN, "Invalid Token, Please save your informations and refresh your page !");
+    static function clearTables(DBController $dbController) {
+        $sql = "
+            SELECT 
+            CONCAT('TRUNCATE TABLE ',TABLE_NAME,';') AS truncateCommand
+            FROM information_schema.TABLES 
+            WHERE TABLE_SCHEMA = 'froxynetwork_test';
+        ";
+        $prep = $dbController->get()->prepare($sql);
+        $prep->execute();
+        $arr = $prep->fetchAll();
+        foreach ($arr as $value)
+            $dbController->get()->exec($value[0]);
     }
 }

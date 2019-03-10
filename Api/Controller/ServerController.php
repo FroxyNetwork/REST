@@ -33,7 +33,6 @@ use OAuth2\Request;
 use OAuth2\Server;
 use Web\Controller\AppController;
 use Web\Core\Core;
-use Web\Core\Response;
 
 class ServerController extends AppController {
 
@@ -58,28 +57,28 @@ class ServerController extends AppController {
         if ($ln >= 1) {
             // Search server
             if (!Core::isInteger($param)) {
-                Response::error(Response::ERROR_BAD_REQUEST, "Invalid id.");
+                $this->response->error($this->response::ERROR_BAD_REQUEST, "Invalid id.");
                 return;
             }
             $server = $this->serverDataController->getServer($param);
-            if (!empty($GLOBALS['errorCode'])) {
-                if ($GLOBALS['errorCode'] == ServerDataController::ERROR_NOT_FOUND) {
+            if (!$server) {
+                if (!empty($GLOBALS['errorCode']) && $GLOBALS['errorCode'] == ServerDataController::ERROR_NOT_FOUND) {
                     // Server not found
-                    Response::error(Response::ERROR_NOTFOUND, "Server not found");
+                    $this->response->error($this->response::ERROR_NOTFOUND, "Server not found");
                     return;
                 }
                 // Error
-                Response::error(Response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
+                $this->response->error($this->response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
                 return;
             } else if ($server == null) {
                 // Unknown error
-                Response::error(Response::ERROR_BAD_REQUEST, "Unknown error");
+                $this->response->error($this->response::ERROR_BAD_REQUEST, "Unknown error");
                 return;
             }
             $port = -1;
             if ($oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_SHOW_PORT))
                 $port = $server->getPort();
-            Response::ok([
+            $this->response->ok([
                 "id" => $server->getId(),
                 "name" => $server->getName(),
                 "port" => $port,
@@ -101,7 +100,7 @@ class ServerController extends AppController {
                     "status" => $server->getStatus(),
                     "creationTime" => Core::formatDate($server->getCreationTime())
                 ];
-            Response::ok($data);
+            $this->response->ok($data);
         }
     }
 
@@ -120,47 +119,46 @@ class ServerController extends AppController {
         $oauth = $this->oauth;
         if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_CREATE)) {
             // Invalid perm
-            Response::error(Response::ERROR_FORBIDDEN, "You don't have the permission to create servers !");
+            $this->response->error($this->response::ERROR_FORBIDDEN, "You don't have the permission to create servers !");
             return;
         }
         // TODO Check if the port is already used.
-        $data = json_decode(file_get_contents('php://input'),TRUE);
+        $data = json_decode($this->request->readInput(),TRUE);
         if (empty($data)) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Data not found !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, "Data not found !");
             return;
         }
         if (!is_array($data) || empty($data['name']) || !isset($data['port'])) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Invalid data value !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, "Invalid data value !");
             return;
         }
         $name = $data['name'];
         $port = $data['port'];
         // Check values
         if (!is_string($name)) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Name must be a string !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, "Name must be a string !");
             return;
         }
         if (strlen($name) > 16) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Name length must be between 1 and 16 !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, "Name length must be between 1 and 16 !");
             return;
         }
         if (!Core::isInteger($port)) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Port must be a correct number !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, "Port must be a correct number !");
             return;
         }
         $port = intval($port);
         if ($port <= 0 || $port >= 65536) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Port must be between 1 and 65535 !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, "Port must be between 1 and 65535 !");
             return;
         }
         $s = $this->serverDataController->createServer($name, $port);
-        if (!empty($GLOBALS['errorCode'])) {
+        if (!$s) {
             // Error
-            Response::error(Response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
-            return;
-        } else if ($s == null) {
-            // Unknown error
-            Response::error(Response::ERROR_BAD_REQUEST, "Unknown error");
+            if (!empty($GLOBALS['errorCode']))
+                $this->response->error($this->response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
+            else
+                $this->response->error($this->response::ERROR_BAD_REQUEST, "Unknown error");
             return;
         }
         $clientSecret = $this->generateClientSecret($s->getId());
@@ -173,11 +171,11 @@ class ServerController extends AppController {
             // Error, we delete the server created previously
             $this->serverDataController->deleteServer($s->getId());
 
-            Response::error(Response::SERVER_INTERNAL, "Error while saving client_id and client_secret");
+            $this->response->error($this->response::SERVER_INTERNAL, "Error while saving client_id and client_secret");
             return;
         }
         // Ok, create
-        Response::ok([
+        $this->response->ok([
             "id" => $s->getId(),
             "name" => $s->getName(),
             "port" => $s->getPort(),
@@ -187,7 +185,7 @@ class ServerController extends AppController {
                 "client_id" => $clientSecret[0],
                 "client_secret" => $clientSecret[1]
             ]
-        ], Response::SUCCESS_CREATED);
+        ], $this->response::SUCCESS_CREATED);
         return;
     }
 
@@ -209,70 +207,69 @@ class ServerController extends AppController {
         $oauth = $this->oauth;
         if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_CREATE)) {
             // Invalid perm
-            Response::error(Response::ERROR_FORBIDDEN, "You don't have the permission to edit servers !");
+            $this->response->error($this->response::ERROR_FORBIDDEN, "You don't have the permission to edit servers !");
             return;
         }
         if (Core::startsWith($param, "/"))
             $param = substr($param, 1);
         $ln = strlen($param);
         if ($ln <= 0) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Id not found.");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, "Id not found.");
             return;
         }
         $id = $param;
-        $data = json_decode(file_get_contents('php://input'),TRUE);
+        $data = json_decode($this->request->readInput(),TRUE);
         // Check values
         if (!Core::isInteger($id)) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Invalid id !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, "Invalid id !");
             return;
         }
         if (empty($data)) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Data not found !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, "Data not found !");
             return;
         }
         if (!is_array($data) || empty($data['status'])) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Invalid data value !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, "Invalid data value !");
             return;
         }
         $status = $data['status'];
         if (!is_string($status)) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Status must be a string !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, "Status must be a string !");
             return;
         }
         if ($status != ServerStatus::WAITING && $status != ServerStatus::STARTED && $status != ServerStatus::ENDING) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Status must be '" . ServerStatus::WAITING . "', '" . ServerStatus::STARTED . "' or '" . ServerStatus::ENDING . "' !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, "Status must be '" . ServerStatus::WAITING . "', '" . ServerStatus::STARTED . "' or '" . ServerStatus::ENDING . "' !");
             return;
         }
-        // On récupère l'ancien joueur
+        // On récupère l'ancien serveur
         $s = $this->serverDataController->getServer($id);
         if (!$s) {
-            Response::error(Response::ERROR_NOTFOUND, "Server not found !");
+            $this->response->error($this->response::ERROR_NOTFOUND, "Server not found !");
             return;
         }
         // On teste si le status est bon
         if (!ServerStatus::isAfter($status, $s->getStatus())) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Invalid status, current is " . $s->getStatus() . " !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, "Invalid status, current is " . $s->getStatus() . " !");
             return;
         }
         // Tout est bon, on update les valeurs
         $s->setStatus($status);
         $s2 = $this->serverDataController->updateServer($s);
-        if (!empty($GLOBALS['errorCode'])) {
+        if (!$s2) {
             // Error
-            Response::error(Response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
-            return;
-        } else if ($s2 == null) {
-            // Unknown error
-            Response::error(Response::ERROR_BAD_REQUEST, "Unknown error");
+            if (!empty($GLOBALS['errorCode']))
+                $this->response->error($this->response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
+            else
+                $this->response->error($this->response::ERROR_BAD_REQUEST, "Unknown error");
             return;
         }
-        Response::ok([
+        $this->response->ok([
             "id" => $s->getId(),
             "name" => $s->getName(),
             "port" => $s->getPort(),
             "status" => $s->getStatus(),
             "creationTime" => Core::formatDate($s->getCreationTime())
-        ], Response::SUCCESS_CREATED);
+        ], $this->response::SUCCESS_CREATED);
         return;
     }
 
@@ -283,41 +280,41 @@ class ServerController extends AppController {
         $oauth = $this->oauth;
         if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_CREATE)) {
             // Invalid perm
-            Response::error(Response::ERROR_FORBIDDEN, "You don't have the permission to delete servers !");
+            $this->response->error($this->response::ERROR_FORBIDDEN, "You don't have the permission to delete servers !");
             return;
         }
         if (Core::startsWith($param, "/"))
             $param = substr($param, 1);
         $ln = strlen($param);
         if ($ln <= 0) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Id not found.");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, "Id not found.");
             return;
         }
         $id = $param;
         // Check values
         if (!Core::isInteger($id)) {
-            Response::error(Response::ERROR_BAD_REQUEST, "Invalid id !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, "Invalid id !");
             return;
         }
         // Check if the entry exists
         $s = $this->serverDataController->getServer($id);
 
         if (!$s) {
-            Response::error(Response::ERROR_NOTFOUND, "Server not found !");
+            $this->response->error($this->response::ERROR_NOTFOUND, "Server not found !");
             return;
         }
         if ($s->getStatus() == ServerStatus::ENDED) {
-            Response::error(Response::ERROR_BAD_REQUEST, "This server is already ended !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, "This server is already ended !");
             return;
         }
 
         // Update
         if (!$this->serverDataController->closeServer($id)) {
             // Error
-            Response::error(Response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
+            $this->response->error($this->response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
             return;
         }
-        Response::ok([]);
+        $this->response->ok([]);
     }
 
     /**
