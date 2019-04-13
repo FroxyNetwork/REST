@@ -314,7 +314,7 @@ class ServerController extends AppController {
             $this->response->error($this->response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
             return;
         }
-        $this->response->ok([]);
+        $this->response->ok();
     }
 
     /**

@@ -61,10 +61,14 @@ class ResponseController {
     /**
      * Envoyer un message sous format JSON
      *
-     * @param ? $data Les données à envoyer
+     * @param ? $data Les données à envoyer. Si data vaut null, alors on objet vide sera envoyé ("{}")
      * @param int $code Le code de retour
      */
-    public function ok($data, $code = 200) {
+    public function ok($data = null, $code = 200) {
+        if (is_null($data)) {
+            // Data is null, so it'll be an empty object (to return "{}")
+            $data = new \stdClass();
+        }
         if (!is_int($code))
             throw new \InvalidArgumentException("Code must be a number");
         $this->send(self::_create($data, $code));
