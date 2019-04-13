@@ -17,7 +17,7 @@ This software is available under the following licenses:
 
 ## Execution
 Pour executer cette partie:
-- Télécharger le repository
+- Téléchargez le repository
 - Copiez tout le contenu sur votre serveur web
 - Executez la commande "composer install"
 - Créez une base de données "froxynetwork"

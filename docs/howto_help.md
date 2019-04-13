@@ -14,9 +14,10 @@ Lors de la création de nouvelle classe, il y a certaines règles à respecter:
 - Les classes datasource (liaison avec la bdd) se situent dans le dossier Api/Controller/DatasourceController.
 	- Ils doivent se terminer par "DataController". Exemple: "TestDataController"
 	- Le namespace est "Api\Controller\DataController".
+- Ajoutez l'annotation "@author <votre nom>" (sans les doubles guillemets) dans les fichiers sources que vous MODIFIEZ en DESSOUS des annotations existantes si la votre ne l'est pas encore.
 
 
 ## Informations utiles
 N'oubliez pas de lire [howto_tests](https://github.com/FroxyNetwork/REST/blob/develop/docs/howto_tests.md)
 
-Ne modifiez pas le fichier AUTHORS, je le modifierai moi-même, sauf si vous me dites de ne pas vous ajouter dans la liste ^^
+Ne modifiez pas le fichier AUTHORS sans mon accord, avant d'accepter votre pull request, je vous dirai où mettre votre nom.
