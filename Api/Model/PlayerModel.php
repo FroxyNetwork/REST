@@ -23,6 +23,7 @@
  * SOFTWARE.
  *
  * @author 0ddlyoko
+ * @author Sloyni
  */
 
 namespace Api\Model;
@@ -38,7 +39,7 @@ class PlayerModel {
     /**
      * @var string real name
      */
-    private $pseudo;
+    private $nickname;
     /**
      * @var string display name
      */
@@ -75,7 +76,7 @@ class PlayerModel {
     /**
      * PlayerModel constructor.
      * @param $uuid
-     * @param $pseudo
+     * @param $nickname
      * @param $displayName
      * @param $coins
      * @param $level
@@ -85,9 +86,9 @@ class PlayerModel {
      * @param $ip
      * @param $lang
      */
-    public function __construct(string $uuid, string $pseudo, string $displayName, int $coins, int $level, int $exp, \DateTime $firstLogin, \DateTime $lastLogin, string $ip, string $lang) {
+    public function __construct(string $uuid, string $nickname, string $displayName, int $coins, int $level, int $exp, \DateTime $firstLogin, \DateTime $lastLogin, string $ip, string $lang) {
         $this->uuid = $uuid;
-        $this->pseudo = $pseudo;
+        $this->nickname = $nickname;
         $this->displayName = $displayName;
         $this->coins = $coins;
         $this->level = $level;
@@ -108,15 +109,15 @@ class PlayerModel {
     /**
      * @return string
      */
-    public function getPseudo(): string {
-        return $this->pseudo;
+    public function getNickname(): string {
+        return $this->nickname;
     }
 
     /**
-     * @param string $pseudo
+     * @param string $nickname
      */
-    public function setPseudo(string $pseudo) {
-        $this->pseudo = $pseudo;
+    public function setNickname(string $nickname) {
+        $this->nickname = $nickname;
     }
 
     /**

@@ -23,6 +23,7 @@
  * SOFTWARE.
  *
  * @author 0ddlyoko
+ * @author Sloyni
  */
 
 namespace Tests\Api\Model;
@@ -36,7 +37,7 @@ class PlayerModelTest extends TestCase {
         $now = new \DateTime('now');
         $player = new PlayerModel("86173d9f-f7f4-4965-8e9d-f37783bf6fa7", "0ddlyoko", "1ddlyoko", 100, 10, 125, $now, $now, "127.0.0.1", "fr_FR");
         self::assertEquals("86173d9f-f7f4-4965-8e9d-f37783bf6fa7", $player->getUuid());
-        self::assertEquals("0ddlyoko", $player->getPseudo());
+        self::assertEquals("0ddlyoko", $player->getNickname());
         self::assertEquals("1ddlyoko", $player->getDisplayName());
         self::assertEquals(100, $player->getCoins());
         self::assertEquals(10, $player->getLevel());
@@ -50,7 +51,7 @@ class PlayerModelTest extends TestCase {
     function testSetPlayer() {
         $now = new \DateTime('now');
         $player = new PlayerModel("86173d9f-f7f4-4965-8e9d-f37783bf6fa7", "0ddlyoko", "1ddlyoko", 100, 10, 125, $now, $now, "127.0.0.1", "fr_FR");
-        $player->setPseudo("1ddlyoko");
+        $player->setNickname("1ddlyoko");
         $player->setDisplayName("0ddlyoko");
         $player->setCoins(101);
         $player->setLevel(11);
@@ -59,7 +60,7 @@ class PlayerModelTest extends TestCase {
         $player->setIp("127.0.0.2");
         $player->setLang("fr_BE");
 
-        self::assertEquals("1ddlyoko", $player->getPseudo());
+        self::assertEquals("1ddlyoko", $player->getNickname());
         self::assertEquals("0ddlyoko", $player->getDisplayName());
         self::assertEquals(101, $player->getCoins());
         self::assertEquals(11, $player->getLevel());

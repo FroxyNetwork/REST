@@ -23,7 +23,9 @@
  * SOFTWARE.
  *
  * @author 0ddlyoko
+ * @author Sloyni
  */
+
 
 namespace Api\Controller\DatasourceController;
 
@@ -59,7 +61,7 @@ class PlayerDataController {
                 return false;
             }
             $result = $prep->fetch();
-            return new PlayerModel($result['uuid'], $result['pseudo'], $result['display_name'], $result['coins'], $result['level'], $result['exp'], new \DateTime($result['first_login']), new \DateTime($result['last_login']), $result['ip'], $result['lang']);
+            return new PlayerModel($result['uuid'], $result['nickname'], $result['display_name'], $result['coins'], $result['level'], $result['exp'], new \DateTime($result['first_login']), new \DateTime($result['last_login']), $result['ip'], $result['lang']);
         } catch(\Exception $ex) {
             $GLOBALS['error'] = $ex->getMessage();
             $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
@@ -72,14 +74,14 @@ class PlayerDataController {
     }
 
     /**
-     * @param $pseudo string Player name
+     * @param $nickname string Player name
      * @return PlayerModel|bool
      */
-    function getUserByPseudo($pseudo) {
+    function getUserByPseudo($nickname) {
         try {
-            $sql = "SELECT * FROM ".self::name." WHERE pseudo=:pseudo";
+            $sql = "SELECT * FROM ".self::name." WHERE nickname=:nickname";
             $prep = $this->db->prepare($sql);
-            $prep->bindValue(":pseudo", $pseudo, \PDO::PARAM_STR);
+            $prep->bindValue(":nickname", $nickname, \PDO::PARAM_STR);
             $prep->execute();
             if ($prep->rowCount() == 0) {
                 $GLOBALS['error'] = "Player Not Found !";
@@ -87,7 +89,7 @@ class PlayerDataController {
                 return false;
             }
             $result = $prep->fetch();
-            return new PlayerModel($result['uuid'], $result['pseudo'], $result['display_name'], $result['coins'], $result['level'], $result['exp'], new \DateTime($result['first_login']), new \DateTime($result['last_login']), $result['ip'], $result['lang']);
+            return new PlayerModel($result['uuid'], $result['nickname'], $result['display_name'], $result['coins'], $result['level'], $result['exp'], new \DateTime($result['first_login']), new \DateTime($result['last_login']), $result['ip'], $result['lang']);
         } catch(\Exception $ex) {
             $GLOBALS['error'] = $ex->getMessage();
             $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
@@ -101,19 +103,19 @@ class PlayerDataController {
 
     /**
      * @param $uuid string L'UUID du joueur
-     * @param $pseudo string Le pseudo du joueur
+     * @param $nickname string Le pseudo du joueur
      * @param $ip string L'ip du joueur
      *
      * @return bool|PlayerModel false si erreur, ou le joueur
      */
-    function createUser($uuid, $pseudo, $ip) {
+    function createUser($uuid, $nickname, $ip) {
         try {
             $now = new \DateTime();
-            $p = new PlayerModel($uuid, $pseudo, $pseudo, 0, 1, 0, $now, $now, $ip, "fr_FR");
-            $sql = "INSERT INTO ".self::name." (uuid, pseudo, display_name, coins, level, exp, first_login, last_login, ip, lang) VALUES (:uuid, :pseudo, :displayname, :coins, :level, :exp, :firstlogin, :lastlogin, :ip, :lang)";
+            $p = new PlayerModel($uuid, $nickname, $nickname, 0, 1, 0, $now, $now, $ip, "fr_FR");
+            $sql = "INSERT INTO ".self::name." (uuid, nickname, display_name, coins, level, exp, first_login, last_login, ip, lang) VALUES (:uuid, :nickname, :displayname, :coins, :level, :exp, :firstlogin, :lastlogin, :ip, :lang)";
             $prep = $this->db->prepare($sql);
             $prep->bindValue(":uuid", $p->getUuid(), \PDO::PARAM_STR);
-            $prep->bindValue(":pseudo", $p->getPseudo(), \PDO::PARAM_STR);
+            $prep->bindValue(":nickname", $p->getNickname(), \PDO::PARAM_STR);
             $prep->bindValue(":displayname", $p->getDisplayName(), \PDO::PARAM_STR);
             $prep->bindValue(":coins", $p->getCoins(), \PDO::PARAM_INT);
             $prep->bindValue(":level", $p->getLevel(), \PDO::PARAM_INT);
@@ -147,9 +149,9 @@ class PlayerDataController {
      */
     function updateUser($p) {
         try {
-            $sql = "UPDATE ".self::name." SET pseudo=:pseudo, display_name=:displayname, coins=:coins, level=:level, exp=:exp, last_login=:lastlogin, ip=:ip, lang=:lang WHERE uuid=:uuid";
+            $sql = "UPDATE ".self::name." SET nickname=:nickname, display_name=:displayname, coins=:coins, level=:level, exp=:exp, last_login=:lastlogin, ip=:ip, lang=:lang WHERE uuid=:uuid";
             $prep = $this->db->prepare($sql);
-            $prep->bindValue(":pseudo", $p->getPseudo(), \PDO::PARAM_STR);
+            $prep->bindValue(":nickname", $p->getNickname(), \PDO::PARAM_STR);
             $prep->bindValue(":displayname", $p->getDisplayName(), \PDO::PARAM_STR);
             $prep->bindValue(":coins", $p->getCoins(), \PDO::PARAM_INT);
             $prep->bindValue(":level", $p->getLevel(), \PDO::PARAM_INT);

@@ -139,7 +139,7 @@ INSERT INTO `oauth_scopes` (`scope`, `is_default`) VALUES
 DROP TABLE IF EXISTS `player`;
 CREATE TABLE IF NOT EXISTS `player` (
   `uuid` char(36) NOT NULL,
-  `pseudo` varchar(20) NOT NULL,
+  `nickname` varchar(20) NOT NULL,
   `display_name` varchar(20) NOT NULL,
   `coins` bigint(20) DEFAULT '0',
   `level` int(11) DEFAULT '0',
@@ -157,7 +157,7 @@ CREATE TABLE IF NOT EXISTS `player` (
 -- Déchargement des données de la table `player`
 --
 
-INSERT INTO `player` (`uuid`, `pseudo`, `display_name`, `coins`, `level`, `exp`, `first_login`, `last_login`, `ip`, `lang`) VALUES
+INSERT INTO `player` (`uuid`, `nickname`, `display_name`, `coins`, `level`, `exp`, `first_login`, `last_login`, `ip`, `lang`) VALUES
 ('86173d9f-f7f4-4965-8e9d-f37783bf6fa7', '1ddlyoko', '1ddlyoko', 1000, 20, 142, '2019-01-30 21:58:05', '2019-01-31 01:00:00', '127.0.0.1', 'fr_FR');
 
 -- --------------------------------------------------------

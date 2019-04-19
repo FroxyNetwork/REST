@@ -23,6 +23,7 @@
  * SOFTWARE.
  *
  * @author 0ddlyoko
+ * @author Sloyni
  */
 
 namespace Api\Controller;
@@ -87,7 +88,7 @@ class PlayerController extends AppController {
             $ip = $player->getIp();
         $this->response->ok([
             "uuid" => $player->getUuid(),
-            "pseudo" => $player->getPseudo(),
+            "nickname" => $player->getNickname(),
             "displayName" => $displayName,
             "coins" => $player->getCoins(),
             "level" => $player->getLevel(),
@@ -103,7 +104,7 @@ class PlayerController extends AppController {
      * DATA:
      * {
         "uuid" => "86173d9f-f7f4-4965-8e9d-f37783bf6fa7",
-        "pseudo" => "0ddlyoko",
+        "nickname" => "0ddlyoko",
         "ip" => "127.0.0.1"
      * }
      * Pas plus, les données par défauts vont être gérés par la bdd
@@ -124,12 +125,12 @@ class PlayerController extends AppController {
             $this->response->error($this->response::ERROR_BAD_REQUEST, "Data not found !");
             return;
         }
-        if (!is_array($data) || empty($data['uuid']) || empty($data['pseudo']) || empty($data['ip'])) {
+        if (!is_array($data) || empty($data['uuid']) || empty($data['nickname']) || empty($data['ip'])) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, "Invalid data value !");
             return;
         }
         $uuid = $data['uuid'];
-        $pseudo = $data['pseudo'];
+        $nickname = $data['nickname'];
         $ip = $data['ip'];
         // Check values
         if (strlen($uuid) != 36) {
@@ -140,7 +141,7 @@ class PlayerController extends AppController {
             $this->response->error($this->response::ERROR_BAD_REQUEST, "Bad UUID format !");
             return;
         }
-        if (strlen($pseudo) < 1 || strlen($pseudo) > 20) {
+        if (strlen($nickname) < 1 || strlen($nickname) > 20) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, "Pseudo length must be between 1 and 20 !");
             return;
         }
@@ -158,13 +159,13 @@ class PlayerController extends AppController {
             return;
         }
         // player name already exist ?
-        if ($this->playerDataController->getUserByPseudo($pseudo)) {
+        if ($this->playerDataController->getUserByPseudo($nickname)) {
             $this->response->error($this->response::ERROR_CONFLICT, "Pseudo already exist !");
             return;
         }
         unset($GLOBALS['error']);
         unset($GLOBALS['errorCode']);
-        $p = $this->playerDataController->createUser($uuid, $pseudo, $ip);
+        $p = $this->playerDataController->createUser($uuid, $nickname, $ip);
         if (!empty($GLOBALS['errorCode'])) {
             // Error
             $this->response->error($this->response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
@@ -176,7 +177,7 @@ class PlayerController extends AppController {
         }
         $this->response->ok([
             "uuid" => $p->getUuid(),
-            "pseudo" => $p->getPseudo(),
+            "nickname" => $p->getNickname(),
             "displayName" => $p->getDisplayName(),
             "coins" => $p->getCoins(),
             "level" => $p->getLevel(),
@@ -192,7 +193,7 @@ class PlayerController extends AppController {
     /**
      * DATA:
      * {
-        "pseudo" => "0ddlyoko",
+        "nickname" => "0ddlyoko",
         "displayName" => "0ddlyoko",
         "coins" => 5,
         "level" => 2,
@@ -201,7 +202,7 @@ class PlayerController extends AppController {
         "ip" => "127.0.0.1",
         "lang" => "fr_FR"
      * }
-     * // TODO Retirer "pseudo" (Trouver un autre moyen pour changer de pseudo (Genre une autre url + vérif par mail etc ==> Mail ?))
+     * // TODO Retirer "nickname" (Trouver un autre moyen pour changer de pseudo (Genre une autre url + vérif par mail etc ==> Mail ?))
      * // TODO Retirer "coins", "level", "exp" (On va gérer ça par un autre moyen)
      * @param $param
      */
@@ -227,12 +228,12 @@ class PlayerController extends AppController {
             $this->response->error($this->response::ERROR_BAD_REQUEST, "Data not found !");
             return;
         }
-        if (!is_array($data) || empty($data['pseudo']) || empty($data['displayName']) || empty($data['lastLogin']) || empty($data['ip']) || empty($data['lang'])) {
+        if (!is_array($data) || empty($data['nickname']) || empty($data['displayName']) || empty($data['lastLogin']) || empty($data['ip']) || empty($data['lang'])) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, "Invalid data value !");
             return;
         }
         $uuid = $param;
-        $pseudo = $data['pseudo'];
+        $nickname = $data['nickname'];
         $displayName = $data['displayName'];
         $coins = $data['coins'];
         $level = $data['level'];
@@ -244,7 +245,7 @@ class PlayerController extends AppController {
             $this->response->error($this->response::ERROR_BAD_REQUEST, "Bad UUID format !");
             return;
         }
-        if (strlen($pseudo) < 1 || strlen($pseudo) > 20) {
+        if (strlen($nickname) < 1 || strlen($nickname) > 20) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, "Pseudo length must be between 1 and 20 !");
             return;
         }
@@ -290,7 +291,7 @@ class PlayerController extends AppController {
             return;
         }
         // Tout est bon, on update les valeurs
-        $p->setPseudo($pseudo);
+        $p->setNickname($nickname);
         $p->setDisplayName($displayName);
         $p->setCoins($coins);
         $p->setLevel($level);
@@ -311,7 +312,7 @@ class PlayerController extends AppController {
         }
         $this->response->ok([
             "uuid" => $p2->getUuid(),
-            "pseudo" => $p2->getPseudo(),
+            "nickname" => $p2->getNickname(),
             "displayName" => $p2->getDisplayName(),
             "coins" => $p2->getCoins(),
             "level" => $p2->getLevel(),
