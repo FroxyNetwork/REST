@@ -74,7 +74,7 @@ CREATE TABLE `oauth_scopes` (
 
 CREATE TABLE `player` (
     `uuid` char(36) NOT NULL,
-    `pseudo` varchar(20) NOT NULL,
+    `nickname` varchar(20) NOT NULL,
     `display_name` varchar(20) NOT NULL,
     `coins` bigint(20) DEFAULT '0',
     `level` int(11) DEFAULT '0',
