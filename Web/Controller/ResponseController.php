@@ -110,7 +110,6 @@ class ResponseController {
      * @see \Api\Model\Error
      */
     public function error($errorCore, $error, $args = []) {
-        var_dump($errorCore);
         if (!is_int($errorCore))
             throw new \InvalidArgumentException('$errorCore must be an integer ! See \Web\Controller\ResponseController class');
         if (!is_array($error))
