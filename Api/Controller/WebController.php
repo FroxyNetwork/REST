@@ -47,7 +47,7 @@ class WebController extends AppController {
      * ]
      * Donc, pour tout les controleurs, il y aura une variable $user avec comme valeur user
      *
-     * @param array $list Une liste de chose à ajouter aux controleurs
+     * @param array $list Une liste de variables à ajouter aux controleurs
      * @param \PDO $pdo La connexion bdd
      */
     function onLoad(array &$list, \PDO $pdo) {

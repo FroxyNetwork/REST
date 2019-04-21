@@ -27,6 +27,8 @@
 
 namespace Web\Controller;
 
+use Web\Core\Error;
+
 class ResponseController {
     const SUCCESS_OK = 200;
     const SUCCESS_CREATED = 201;
@@ -47,17 +49,35 @@ class ResponseController {
     const SERVER_INTERNAL = 500;
     const SERVER_NOT_IMPLEMENTED = 501;
 
-    public static function _create($data, $code = 200, $error = false, $error_message = null) {
+    /**
+     * Crée un message en JSON qui sera envoyé
+     *
+     * @param string $data Les données à envoyer
+     * @param int $code Le code de retour
+     * @param array $error L'erreur. Null par défaut
+     * @return array
+     */
+    public static function _create($data, $code = 200, $error = null) {
         if (!is_int($code))
             throw new \InvalidArgumentException("Code must be a number");
-        if (!is_bool($error))
-            throw new \InvalidArgumentException("Error must be a boolean");
-        return [
-            "error" => $error,
+        if ($error !== null) {
+            if (!is_array($error))
+                throw new \InvalidArgumentException('Error must be a correct array ! See \Api\Model\Error class');
+            if (!is_int($error[0]))
+                throw new \InvalidArgumentException('$error[0] must be an integer ! See \Api\Model\Error class');
+            if (!is_string($error[1]))
+                throw new \InvalidArgumentException('$error[1] must be a string ! See \Api\Model\Error class');
+        }
+        $result = [
+            "error" => $error !== null,
             "code" => $code,
-            "error_message" => $error_message,
             "data" => $data
         ];
+        if ($error !== null) {
+            $result["error_id"] = $error[0];
+            $result["error_message"] = $error[1];
+        }
+        return $result;
     }
 
     /**
@@ -77,24 +97,42 @@ class ResponseController {
     }
 
     /**
-     * Envoyer un message d'erreur
+     * Envoyer un message d'erreur <br />
+     * Exemple:
+     * <code>
+     * error(Error::GLOBAL_ERROR, ["errorCode" => "1", "error" => "An error has occured: XXX"]);
+     * </code>
      *
-     * @param int errorCode Le code d'erreur
-     * @param string error Le message d'erreur
+     * @param int $errorCore Le code d'erreur (400, 401, ...)
+     * @param array $error L'erreur
+     * @param array $args Les arguments
      *
-     * TODO: Custom Error ID
+     * @see \Api\Model\Error
      */
-    public function error($errorCode, $error) {
-        if (!is_int($errorCode))
-            throw new \InvalidArgumentException("ErrorCode must be a number");
-        $this->send(self::_create(null, $errorCode, true, $error));
+    public function error($errorCore, $error, $args = []) {
+        var_dump($errorCore);
+        if (!is_int($errorCore))
+            throw new \InvalidArgumentException('$errorCore must be an integer ! See \Web\Controller\ResponseController class');
+        if (!is_array($error))
+            throw new \InvalidArgumentException('Error must be a correct array ! See \Api\Model\Error class');
+        if (!is_int($error[0]))
+            throw new \InvalidArgumentException('$error[0] must be an integer ! See \Api\Model\Error class');
+        if (!is_string($error[1]))
+            throw new \InvalidArgumentException('$error[1] must be a string ! See \Api\Model\Error class');
+        $msg = $error[1];
+        foreach ($args as $key => $value)
+            $msg = str_replace("{".$key."}", $value, $msg);
+        $error_2 = [];
+        $error_2[0] = $error[0];
+        $error_2[1] = $msg;
+        $this->send(self::_create(null, $errorCore, $error_2));
     }
 
     /**
      * Envoyer un message d'erreur "NOT_IMPLEMENTED"
      */
     public function notImplemented() {
-        $this->error(self::SERVER_NOT_IMPLEMENTED, "This method is not implemented");
+        $this->error(self::SERVER_NOT_IMPLEMENTED, Error::METHOD_NOT_IMPLEMENTED);
     }
 
     /**

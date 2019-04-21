@@ -86,7 +86,7 @@ class Core {
             $appController = self::getAppController($controller);
             if ($appController == null) {
                 // Erreur
-                self::$_responseController->error(self::$_responseController::ERROR_NOTFOUND, "Non trouvé");
+                self::$_responseController->error(self::$_responseController::ERROR_NOTFOUND, Error::GLOBAL_CONTROLLER_NOT_FOUND);
                 return;
             }
 
@@ -116,7 +116,7 @@ class Core {
 
         } catch (\Exception $ex) {
             // Erreur
-            self::$_responseController->error(self::$_responseController::ERROR_NOTFOUND, "Non trouvé");
+            self::$_responseController->error(self::$_responseController::SERVER_INTERNAL, Error::GLOBAL_UNKNOWN_ERROR);
         }
 
         //$appController->$action($params);

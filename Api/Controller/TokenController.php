@@ -27,6 +27,7 @@
  
 namespace Api\Controller;
 
+use Api\Model\Error;
 use Web\Controller\AppController;
 use Web\Core\Response;
 
@@ -62,6 +63,6 @@ class TokenController extends AppController {
      */
     function invalid() {
         // Token invalide
-        $this->response->error($this->response::ERROR_FORBIDDEN, "Invalid Token, Please save your informations and refresh your page !");
+        $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_TOKEN_INVALUD);
     }
 }

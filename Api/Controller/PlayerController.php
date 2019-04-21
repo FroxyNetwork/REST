@@ -34,6 +34,7 @@ use OAuth2\Request;
 use OAuth2\Server;
 use Web\Controller\AppController;
 use Web\Core\Core;
+use Web\Core\Error;
 
 class PlayerController extends AppController {
 
@@ -63,21 +64,21 @@ class PlayerController extends AppController {
             // Name
             $player = $this->playerDataController->getUserByPseudo($param);
         } else {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "The length of the search must be between 1 and 20, or equals to 36.");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_DATA_LENGTH);
             return;
         }
         if (!empty($GLOBALS['errorCode'])) {
             if ($GLOBALS['errorCode'] == PlayerDataController::ERROR_NOT_FOUND) {
                 // Player not found
-                $this->response->error($this->response::ERROR_NOTFOUND, "Player not found");
+                $this->response->error($this->response::ERROR_NOTFOUND, Error::PLAYER_NOT_FOUND);
                 return;
             }
             // Error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_ERROR, ["errorCode" => $GLOBALS['errorCode'], "error" => $GLOBALS['error']]);
             return;
         } else if ($player == null) {
             // Unknown error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Unknown error");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_UNKNOWN);
             return;
         }
         $displayName = "<HIDDEN>";
@@ -117,16 +118,16 @@ class PlayerController extends AppController {
         $oauth = $this->oauth;
         if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::PLAYER_CREATE)) {
             // Invalid perm
-            $this->response->error($this->response::ERROR_FORBIDDEN, "You don't have the permission to create players !");
+            $this->response->error($this->response::ERROR_FORBIDDEN, ERROR::GLOBAL_NO_PERMISSION);
             return;
         }
         $data = json_decode($this->request->readInput(),TRUE);
         if (empty($data)) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Data not found !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, ERROR::GLOBAL_DATA_INVALID);
             return;
         }
         if (!is_array($data) || empty($data['uuid']) || empty($data['nickname']) || empty($data['ip'])) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Invalid data value !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_DATA_INVALID);
             return;
         }
         $uuid = $data['uuid'];
@@ -134,33 +135,33 @@ class PlayerController extends AppController {
         $ip = $data['ip'];
         // Check values
         if (strlen($uuid) != 36) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "UUID length must be 36 !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_UUID_LENGTH);
             return;
         }
         if (!is_string($uuid) || (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $uuid) !== 1)) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Bad UUID format !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_IP_FORMAT);
             return;
         }
         if (strlen($nickname) < 1 || strlen($nickname) > 20) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Pseudo length must be between 1 and 20 !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_PSEUDO_LENGTH);
             return;
         }
         if (strlen($ip) < 7 || strlen($ip) > 15) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Ip length must be between 7 and 15 !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_IP_LENGTH);
             return;
         }
         if (!filter_var($ip, FILTER_VALIDATE_IP)) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Bad ip format !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_IP_FORMAT);
             return;
         }
         // uuid already exist ?
         if ($this->playerDataController->getUserByUUID($uuid)) {
-            $this->response->error($this->response::ERROR_CONFLICT, "UUID already exist !");
+            $this->response->error($this->response::ERROR_CONFLICT, Error::PLAYER_UUID_EXISTS);
             return;
         }
         // player name already exist ?
         if ($this->playerDataController->getUserByPseudo($nickname)) {
-            $this->response->error($this->response::ERROR_CONFLICT, "Pseudo already exist !");
+            $this->response->error($this->response::ERROR_CONFLICT, Error::PLAYER_PSEUDO_EXISTS);
             return;
         }
         unset($GLOBALS['error']);
@@ -168,11 +169,11 @@ class PlayerController extends AppController {
         $p = $this->playerDataController->createUser($uuid, $nickname, $ip);
         if (!empty($GLOBALS['errorCode'])) {
             // Error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_ERROR, ["errorCode" => $GLOBALS['errorCode'], "error" => $GLOBALS['error']]);
             return;
         } else if ($p == null) {
             // Unknown error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Unknown error");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_UNKNOWN);
             return;
         }
         $this->response->ok([
@@ -213,23 +214,23 @@ class PlayerController extends AppController {
         $oauth = $this->oauth;
         if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::PLAYER_CREATE)) {
             // Invalid perm
-            $this->response->error($this->response::ERROR_FORBIDDEN, "You don't have the permission to edit players !");
+            $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
             return;
         }
         if (Core::startsWith($param, "/"))
             $param = substr($param, 1);
         $ln = strlen($param);
         if ($ln != 36) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Invalid UUID length in url, it must be equals to 36.");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_UUID_LENGTH);
             return;
         }
         $data = json_decode($this->request->readInput(),TRUE);
         if (empty($data)) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Data not found !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_DATA_INVALID);
             return;
         }
         if (!is_array($data) || empty($data['nickname']) || empty($data['displayName']) || empty($data['lastLogin']) || empty($data['ip']) || empty($data['lang'])) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Invalid data value !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_DATA_INVALID);
             return;
         }
         $uuid = $param;
@@ -242,52 +243,52 @@ class PlayerController extends AppController {
         $ip = $data['ip'];
         $lang = $data['lang'];
         if (!is_string($uuid) || (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $uuid) !== 1)) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Bad UUID format !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_UUID_FORMAT);
             return;
         }
         if (strlen($nickname) < 1 || strlen($nickname) > 20) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Pseudo length must be between 1 and 20 !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_PSEUDO_LENGTH);
             return;
         }
         if (strlen($displayName) < 1 || strlen($displayName) > 20) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "DisplayName length must be between 1 and 20 !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_DISPLAYNAME_LENGTH);
             return;
         }
         if ($coins < 0) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Coins must be positive !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_COINS_POSITIVE);
             return;
         }
         if ($level < 0) {
             // TODO Autoriser la suppression des niveaux (Genre on peut "acheter" des améliorations avec des niveaux, ...)
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Level must be positive !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_LEVEL_POSITIVE);
             return;
         }
         if ($exp < 0) {
             // TODO Idem que "level"
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Exp must be positive !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_EXP_POSITIVE);
             return;
         }
         // lastLogin
         try {
             $lastLogin = new \DateTime($lastLogin);
         } catch (\Exception $ex) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Bad time format !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_TIME_FORMAT);
             return;
         }
         if (!filter_var($ip, FILTER_VALIDATE_IP)) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Bad ip format !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_IP_FORMAT);
             return;
         }
         // TODO Vérifier si la langue est correcte
         // On récupère l'ancien joueur
         $p = $this->playerDataController->getUserByUUID($uuid);
         if (!$p) {
-            $this->response->error($this->response::ERROR_NOTFOUND, "Player not found !");
+            $this->response->error($this->response::ERROR_NOTFOUND, Error::PLAYER_NOT_FOUND);
             return;
         }
         // On teste si lastLogin est bien égal ou plus petit que le lastLogin sauvegardé
         if ($lastLogin <= $p->getLastLogin()) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "LastLogin must be greater than saved LastLogin !");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_LASTLOGIN_GREATER);
             return;
         }
         // Tout est bon, on update les valeurs
@@ -303,11 +304,11 @@ class PlayerController extends AppController {
         $p2 = $this->playerDataController->updateUser($p);
         if (!empty($GLOBALS['errorCode'])) {
             // Error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Error #".$GLOBALS['errorCode']." : ".$GLOBALS['error']);
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_ERROR, ["errorCode" => $GLOBALS['errorCode'], "error" => $GLOBALS['error']]);
             return;
         } else if ($p2 == null) {
             // Unknown error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, "Unknown error");
+            $this->response->error($this->response::ERROR_BAD_REQUEST, ERROR::GLOBAL_UNKNOWN);
             return;
         }
         $this->response->ok([
