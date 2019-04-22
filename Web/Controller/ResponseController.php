@@ -52,7 +52,7 @@ class ResponseController {
     /**
      * Crée un message en JSON qui sera envoyé
      *
-     * @param string $data Les données à envoyer
+     * @param mixed $data Les données à envoyer
      * @param int $code Le code de retour
      * @param array $error L'erreur. Null par défaut
      * @return array
@@ -103,14 +103,14 @@ class ResponseController {
      * error(Error::GLOBAL_ERROR, ["errorCode" => "1", "error" => "An error has occured: XXX"]);
      * </code>
      *
-     * @param int $errorCore Le code d'erreur (400, 401, ...)
+     * @param int $errorCode Le code d'erreur (400, 401, ...)
      * @param array $error L'erreur
      * @param array $args Les arguments
      *
      * @see \Api\Model\Error
      */
-    public function error($errorCore, $error, $args = []) {
-        if (!is_int($errorCore))
+    public function error($errorCode, $error, $args = []) {
+        if (!is_int($errorCode))
             throw new \InvalidArgumentException('$errorCore must be an integer ! See \Web\Controller\ResponseController class');
         if (!is_array($error))
             throw new \InvalidArgumentException('Error must be a correct array ! See \Api\Model\Error class');
@@ -124,7 +124,7 @@ class ResponseController {
         $error_2 = [];
         $error_2[0] = $error[0];
         $error_2[1] = $msg;
-        $this->send(self::_create(null, $errorCore, $error_2));
+        $this->send(self::_create(null, $errorCode, $error_2));
     }
 
     /**

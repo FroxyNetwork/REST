@@ -29,6 +29,7 @@ namespace Tests\Web\Core;
 
 use PHPUnit\Framework\TestCase;
 use Tests\Util\ResponseControllerImpl;
+use Web\Core\Error;
 
 class ResponseTest extends TestCase {
 
@@ -62,31 +63,28 @@ class ResponseTest extends TestCase {
         self::assertEquals([
             "error" => false,
             "code" => 200,
-            "error_message" => null,
             "data" => []
         ], $this->responseController::_create([]));
         self::assertEquals([
             "error" => false,
             "code" => 201,
-            "error_message" => null,
             "data" => []
         ], $this->responseController::_create([], 201));
         self::assertEquals([
             "error" => true,
             "code" => 200,
-            "error_message" => null,
+            "error_id" => Error::GLOBAL_UNKNOWN[0],
+            "error_message" => Error::GLOBAL_UNKNOWN[1],
             "data" => []
-        ], $this->responseController::_create([], 200, true));
+        ], $this->responseController::_create([], 200, Error::GLOBAL_UNKNOWN));
         self::assertEquals([
             "error" => false,
             "code" => 200,
-            "error_message" => "Error",
             "data" => []
-        ], $this->responseController::_create([], 200, false, "Error"));
+        ], $this->responseController::_create([], 200));
         self::assertEquals([
             "error" => false,
             "code" => 200,
-            "error_message" => "Error",
             "data" => [
                 "test" => "test2",
                 "number" => 4,
@@ -102,11 +100,10 @@ class ResponseTest extends TestCase {
             "array" => [
                 "value" => 4
             ]
-        ], 200, false, "Error"));
+        ], 200));
         self::assertNotEquals([
             "error" => false,
             "code" => 200,
-            "error_message" => "Error",
             "data" => [
                 "test" => "test2",
                 "number" => 4,
@@ -122,7 +119,7 @@ class ResponseTest extends TestCase {
             "array" => [
                 "value" => 4
             ]
-        ], 200, false, "Error"));
+        ], 200));
     }
 
     /**
@@ -179,7 +176,6 @@ class ResponseTest extends TestCase {
         self::assertEquals(json_encode([
             "error" => false,
             "code" => $code,
-            "error_message" => null,
             "data" => $data
         ]), ob_get_clean());
     }
@@ -198,17 +194,18 @@ class ResponseTest extends TestCase {
     }
 
     function test_error() {
-        self::error_test("Erreur", $this->responseController::ERROR_BAD_REQUEST);
+        self::error_test($this->responseController::ERROR_BAD_REQUEST, Error::GLOBAL_NO_PERMISSION);
     }
 
-    function error_test($message, $code) {
+    function error_test($code, $error) {
         ob_start();
-        $this->responseController->error($code, $message);
+        $this->responseController->error($code, $error);
         self::assertEquals(json_encode([
             "error" => true,
             "code" => $code,
-            "error_message" => $message,
-            "data" => null
+            "data" => null,
+            "error_id" => $error[0],
+            "error_message" => $error[1]
         ]), ob_get_clean());
     }
 
