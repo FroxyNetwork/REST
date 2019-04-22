@@ -303,7 +303,7 @@ class ServerController extends AppController {
         $s = $this->serverDataController->getServer($id);
 
         if (!$s) {
-            $this->response->error($this->response::ERROR_NOTFOUND, ERROR::SERVER_NOT_FOUND);
+            $this->response->error($this->response::ERROR_NOTFOUND, Error::SERVER_NOT_FOUND);
             return;
         }
         if ($s->getStatus() == ServerStatus::ENDED) {

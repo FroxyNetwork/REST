@@ -118,12 +118,12 @@ class PlayerController extends AppController {
         $oauth = $this->oauth;
         if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::PLAYER_CREATE)) {
             // Invalid perm
-            $this->response->error($this->response::ERROR_FORBIDDEN, ERROR::GLOBAL_NO_PERMISSION);
+            $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
             return;
         }
         $data = json_decode($this->request->readInput(),TRUE);
         if (empty($data)) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, ERROR::GLOBAL_DATA_INVALID);
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_DATA_INVALID);
             return;
         }
         if (!is_array($data) || empty($data['uuid']) || empty($data['nickname']) || empty($data['ip'])) {
@@ -308,7 +308,7 @@ class PlayerController extends AppController {
             return;
         } else if ($p2 == null) {
             // Unknown error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, ERROR::GLOBAL_UNKNOWN);
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_UNKNOWN);
             return;
         }
         $this->response->ok([
