@@ -24,11 +24,8 @@
  *
  * @author 0ddlyoko
  */
-
 namespace Web\Core;
-
 use Api\Model\ServerStatus;
-
 interface Error {
     const METHOD_NOT_IMPLEMENTED = [0, "This method is not implemented"];
     const GLOBAL_ERROR = [1, "Error #{errorCode} : {error}"];
@@ -38,7 +35,6 @@ interface Error {
     const GLOBAL_CONTROLLER_NOT_FOUND = [5, "No controller found for your request !"];
     const GLOBAL_UNKNOWN_ERROR = [6, "An error has occured while performing the operation"];
     const GLOBAL_TOKEN_INVALUD = [7, "Invalid Token, Please save your informations and refresh your page !"];
-
     const PLAYER_DATA_LENGTH = [100, "The length of the search must be between 1 and 20, or equals to 36."];
     const PLAYER_NOT_FOUND = [101, "Player not found"];
     const PLAYER_UUID_LENGTH = [102, "UUID length must be 36 !"];
@@ -54,7 +50,6 @@ interface Error {
     const PLAYER_EXP_POSITIVE = [112, "Exp must be positive !"];
     const PLAYER_TIME_FORMAT = [113, "Bad time format !"];
     const PLAYER_LASTLOGIN_GREATER = [114, "LastLogin must be greater than saved LastLogin !"];
-
     const SERVER_ID_INVALID = [200, "Invalid id"];
     const SERVER_NOT_FOUND = [201, "Server not found"];
     const SERVER_NAME_INVALID = [202, "Name must be a string !"];
