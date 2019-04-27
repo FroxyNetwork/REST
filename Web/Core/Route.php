@@ -44,6 +44,8 @@ class Route {
      */
     private static $routes = array();
 
+    private static $path = "/";
+
     /**
      * Lier une URL à un Controlleur
      *
@@ -56,6 +58,8 @@ class Route {
      * @param $to string le controlleur (Sans "Controller" à la fin)
      */
     public static function connect($url, $to) {
+        if (self::$path != "/")
+            $url = self::$path.$url;
         self::$routes[] = array(
             "route" => $url,
             "controller" => $to
@@ -94,6 +98,8 @@ class Route {
         foreach($routes as $r) {
             $i = 0;
             $rExplode = explode("/", $r['route']);
+            if (self::$path != "/" && $rExplode[count($rExplode) - 1] == "")
+                unset($rExplode[count($rExplode) - 1]);
             $urlExplode = explode("/", $url);
             if ($r['route'] != "/") {
                 // Si la taille de $url est plus petite que la taille de la route, ce n'est pas celui-là
@@ -116,5 +122,15 @@ class Route {
             break;
         }
         return $result;
+    }
+
+    /**
+     * Configure the path of the route.
+     * Example:
+     * The REST server is in url localhost/api, so we'll call the configure function with "/api" for the path
+     * @param $path string The path
+     */
+    public static function configure($path) {
+        self::$path = $path;
     }
 }

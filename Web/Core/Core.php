@@ -72,6 +72,7 @@ class Core {
         self::$database = new DBController("localhost", 3306, "root", "", "froxynetwork");
         self::$list = array();
         // Including Routage
+        Route::configure("/");
         include API_DIR.DS."Config".DS."Routage.php";
         $path = self::$_requestController->getPath();
         $route = Route::getRoute($path);
