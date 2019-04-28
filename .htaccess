@@ -1,5 +1,4 @@
 <IfModule mod_rewrite.c>
    RewriteEngine on
-   RewriteRule ^$ Web/Redirect/    [L]
-   RewriteRule (.*) Web/Redirect/$1 [L]
+   RewriteRule ^(.*)$ Web/Redirect/$1 [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
 </IfModule>

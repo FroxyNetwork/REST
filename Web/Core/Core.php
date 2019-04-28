@@ -65,6 +65,28 @@ class Core {
     private static $list = [];
 
     public static function init() {
+        // Fix HTTP_AUTHORIZATION
+        $httpAuthorization = null;
+        if (isset($_SERVER['HTTP_AUTHORIZATION']))
+            $httpAuthorization = $_SERVER["HTTP_AUTHORIZATION"];
+        else if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION']))
+            $httpAuthorization = $_SERVER["REDIRECT_HTTP_AUTHORIZATION"];
+        else if (isset($_SERVER['REDIRECT_REDIRECT_HTTP_AUTHORIZATION']))
+            $httpAuthorization = $_SERVER["REDIRECT_REDIRECT_HTTP_AUTHORIZATION"];
+        if ($httpAuthorization !== null) {
+            if (stripos($httpAuthorization, "basic ") === 0) {
+                // Decode AUTHORIZATION header into PHP_AUTH_USER and PHP_AUTH_PW when authorization header is basic
+                $exploded = explode(':', base64_decode(substr($httpAuthorization, 6)), 2);
+                if (2 == count($exploded))
+                    list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) = $exploded;
+            } else if (empty($_SERVER['PHP_AUTH_DIGEST']) && (stripos($httpAuthorization, "digest ") === 0)) {
+                $_SERVER['PHP_AUTH_DIGEST'] = $httpAuthorization;
+            } else if (stripos($httpAuthorization, "bearer ") === 0) {
+                // nginx is so bugged ...
+                $_SERVER['AUTHORIZATION'] = $httpAuthorization;
+                $_SERVER['HTTP_AUTHORIZATION'] = $httpAuthorization;
+            }
+        }
         // Initialisation des controleurs
         self::$_requestController = new RequestController();
         self::$_responseController = new ResponseController();
