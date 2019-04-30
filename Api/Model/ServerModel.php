@@ -62,9 +62,10 @@ class ServerModel {
      * @param string $name
      * @param int $port
      * @param \DateTime $creationTime
+     * @param \DateTime|null $endTime
      * @param string $status
      */
-    public function __construct(int $id, string $name, int $port, string $status, \DateTime $creationTime, \DateTime $endTime) {
+    public function __construct(int $id, string $name, int $port, string $status, \DateTime $creationTime, \DateTime $endTime = null) {
         $this->id = $id;
         $this->name = $name;
         $this->port = $port;
