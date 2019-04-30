@@ -60,7 +60,7 @@ class ServerDataController {
                 return false;
             }
             $result = $prep->fetch();
-            return new ServerModel($result['id'], $result['name'], $result['port'], $result['status'], new \DateTime($result['creation_time']), new \DateTime($result['end_time']));
+            return new ServerModel($result['id'], $result['name'], $result['port'], $result['status'], new \DateTime($result['creation_time']), (isset($result['end_time']) && !is_null($result['end_time'])) ? new \DateTime($result['end_time']) : null);
         } catch(\Exception $ex) {
             $GLOBALS['error'] = $ex->getMessage();
             $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
@@ -93,7 +93,7 @@ class ServerDataController {
             $arr = $prep->fetchAll();
             $result = [];
             foreach ($arr as $value)
-                $result[] = new ServerModel($value['id'], $value['name'], $value['port'], $value['status'], new \DateTime($value['creation_time']), new \DateTime($result['end_time']));
+                $result[] = new ServerModel($value['id'], $value['name'], $value['port'], $value['status'], new \DateTime($value['creation_time']), (isset($result['end_time']) && !is_null($result['end_time'])) ? new \DateTime($result['end_time']) : null);
             return $result;
         } catch(\Exception $ex) {
             $GLOBALS['error'] = $ex->getMessage();

@@ -96,6 +96,7 @@ CREATE TABLE `server` (
     `port` int(11) NOT NULL,
     `status` varchar(16) NOT NULL,
     `creation_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `end_time` datetime DEFAULT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
 
