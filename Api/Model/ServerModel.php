@@ -51,6 +51,10 @@ class ServerModel {
      * @var \DateTime $creationTime The creation date
      */
     private $creationTime;
+    /**
+     * @var \DateTime $endTime The end date
+     */
+    private $endTime;
 
     /**
      * ServerModel constructor.
@@ -60,12 +64,13 @@ class ServerModel {
      * @param \DateTime $creationTime
      * @param string $status
      */
-    public function __construct(int $id, string $name, int $port, string $status, \DateTime $creationTime) {
+    public function __construct(int $id, string $name, int $port, string $status, \DateTime $creationTime, \DateTime $endTime) {
         $this->id = $id;
         $this->name = $name;
         $this->port = $port;
         $this->status = $status;
         $this->creationTime = $creationTime;
+        $this->endTime = $endTime;
     }
 
     /**
@@ -115,5 +120,19 @@ class ServerModel {
      */
     public function getCreationTime() : \DateTime {
         return $this->creationTime;
+    }
+
+    /**
+     * @return \DateTime The end time of the server
+     */
+    public function getEndTime() : \DateTime {
+        return $this->endTime;
+    }
+
+    /**
+     * @param \DateTime $endTime The end time of the server
+     */
+    public function setEndTime(\DateTime $endTime) {
+        $this->endTime = $endTime;
     }
 }
