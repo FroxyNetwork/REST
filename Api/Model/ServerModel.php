@@ -126,7 +126,7 @@ class ServerModel {
     /**
      * @return \DateTime The end time of the server
      */
-    public function getEndTime() : \DateTime {
+    public function getEndTime() : ?\DateTime {
         return $this->endTime;
     }
 
