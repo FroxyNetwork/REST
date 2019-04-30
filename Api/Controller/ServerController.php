@@ -81,13 +81,16 @@ class ServerController extends AppController {
             $port = -1;
             if ($oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_SHOW_PORT))
                 $port = $server->getPort();
-            $this->response->ok([
+            $response = [
                 "id" => $server->getId(),
                 "name" => $server->getName(),
                 "port" => $port,
                 "status" => $server->getStatus(),
                 "creationTime" => Core::formatDate($server->getCreationTime())
-            ]);
+            ];
+            if (!is_null($server->getEndTime()))
+                $response["endTime"] = Core::formatDate($server->getEndTime());
+            $this->response->ok($response);
         } else {
             // Search all opened server
             $servers = $this->serverDataController->getOpenedServers();
@@ -95,14 +98,18 @@ class ServerController extends AppController {
             $data['size'] = count($servers);
             $data['servers'] = [];
             $showPort = $oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_SHOW_PORT);
-            foreach ($servers as $server)
-                $data['servers'][] = [
+            foreach ($servers as $server) {
+                $d = [
                     "id" => $server->getId(),
                     "name" => $server->getName(),
                     "port" => ($showPort) ? $server->getPort() : -1,
                     "status" => $server->getStatus(),
                     "creationTime" => Core::formatDate($server->getCreationTime())
                 ];
+                if (!is_null($server->getEndTime()))
+                    $d["endTime"] = Core::formatDate($server->getEndTime());
+                $data['servers'][] = $d;
+            }
             $this->response->ok($data);
         }
     }

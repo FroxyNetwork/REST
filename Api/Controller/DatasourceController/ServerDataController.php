@@ -60,7 +60,7 @@ class ServerDataController {
                 return false;
             }
             $result = $prep->fetch();
-            return new ServerModel($result['id'], $result['name'], $result['port'], $result['status'], new \DateTime($result['creation_time']));
+            return new ServerModel($result['id'], $result['name'], $result['port'], $result['status'], new \DateTime($result['creation_time']), (isset($result['end_time']) && !is_null($result['end_time'])) ? new \DateTime($result['end_time']) : null);
         } catch(\Exception $ex) {
             $GLOBALS['error'] = $ex->getMessage();
             $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
@@ -93,7 +93,7 @@ class ServerDataController {
             $arr = $prep->fetchAll();
             $result = [];
             foreach ($arr as $value)
-                $result[] = new ServerModel($value['id'], $value['name'], $value['port'], $value['status'], new \DateTime($value['creation_time']));
+                $result[] = new ServerModel($value['id'], $value['name'], $value['port'], $value['status'], new \DateTime($value['creation_time']), (isset($result['end_time']) && !is_null($result['end_time'])) ? new \DateTime($result['end_time']) : null);
             return $result;
         } catch(\Exception $ex) {
             $GLOBALS['error'] = $ex->getMessage();
@@ -116,7 +116,7 @@ class ServerDataController {
         try {
             $now = new \DateTime();
             // TODO Scope
-            $s = new ServerModel(0, $name, $port, ServerStatus::STARTING, $now, "");
+            $s = new ServerModel(0, $name, $port, ServerStatus::STARTING, $now, null);
             $sql = "INSERT INTO ".self::name." (name, port, status, creation_time) VALUES (:name, :port, :status, :creation_time)";
             $prep = $this->db->prepare($sql);
             $prep->bindValue(":name", $s->getName(), \PDO::PARAM_STR);
@@ -178,10 +178,11 @@ class ServerDataController {
      */
     function closeServer($id) {
         try {
-            $sql = "UPDATE ".self::name." SET status=:status WHERE id=:id";
+            $sql = "UPDATE ".self::name." SET status=:status, end_time=:end_time WHERE id=:id";
             $prep = $this->db->prepare($sql);
             $prep->bindValue(":status", ServerStatus::ENDED, \PDO::PARAM_STR);
             $prep->bindValue(":id", $id, \PDO::PARAM_INT);
+            $prep->bindValue(":end_time", Core::formatDate(new \DateTime()), \PDO::PARAM_STR);
             $prep->execute();
             if ($prep->rowCount() != 1) {
                 $GLOBALS['error'] = "An error has occured while closing a server !";
