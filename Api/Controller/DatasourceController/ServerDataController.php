@@ -60,7 +60,7 @@ class ServerDataController {
                 return false;
             }
             $result = $prep->fetch();
-            return new ServerModel($result['id'], $result['name'], $result['port'], $result['status'], new \DateTime($result['creation_time']), (isset($result['end_time']) && !is_null($result['end_time'])) ? new \DateTime($result['end_time']) : null);
+            return new ServerModel($result['id'], $result['name'], $result['type'], $result['port'], $result['status'], new \DateTime($result['creation_time']), (isset($result['end_time']) && !is_null($result['end_time'])) ? new \DateTime($result['end_time']) : null);
         } catch(\Exception $ex) {
             $GLOBALS['error'] = $ex->getMessage();
             $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
@@ -93,7 +93,7 @@ class ServerDataController {
             $arr = $prep->fetchAll();
             $result = [];
             foreach ($arr as $value)
-                $result[] = new ServerModel($value['id'], $value['name'], $value['port'], $value['status'], new \DateTime($value['creation_time']), (isset($result['end_time']) && !is_null($result['end_time'])) ? new \DateTime($result['end_time']) : null);
+                $result[] = new ServerModel($value['id'], $value['name'], $value['type'], $value['port'], $value['status'], new \DateTime($value['creation_time']), (isset($result['end_time']) && !is_null($result['end_time'])) ? new \DateTime($result['end_time']) : null);
             return $result;
         } catch(\Exception $ex) {
             $GLOBALS['error'] = $ex->getMessage();
@@ -108,18 +108,20 @@ class ServerDataController {
 
     /**
      * @param $name string Le nom du serveur
+     * @param $type string Le type du serveur
      * @param $port int Le port du serveur
      *
      * @return bool|ServerModel false si erreur, ou le serveur
      */
-    function createServer($name, $port) {
+    function createServer($name, $type, $port) {
         try {
             $now = new \DateTime();
             // TODO Scope
-            $s = new ServerModel(0, $name, $port, ServerStatus::STARTING, $now, null);
-            $sql = "INSERT INTO ".self::name." (name, port, status, creation_time) VALUES (:name, :port, :status, :creation_time)";
+            $s = new ServerModel(0, $name, $type, $port, ServerStatus::STARTING, $now, null);
+            $sql = "INSERT INTO ".self::name." (name, type, port, status, creation_time) VALUES (:name, :type, :port, :status, :creation_time)";
             $prep = $this->db->prepare($sql);
             $prep->bindValue(":name", $s->getName(), \PDO::PARAM_STR);
+            $prep->bindValue(":type", $s->getType(), \PDO::PARAM_STR);
             $prep->bindValue(":port", $s->getPort(), \PDO::PARAM_INT);
             $prep->bindValue(":status", $s->getStatus(), \PDO::PARAM_STR);
             $prep->bindValue(":creation_time", Core::formatDate($s->getCreationTime()), \PDO::PARAM_STR);

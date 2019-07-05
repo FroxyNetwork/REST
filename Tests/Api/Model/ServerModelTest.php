@@ -35,9 +35,10 @@ class ServerModelTest extends TestCase {
 
     function testGetServer() {
         $now = new \DateTime('now');
-        $server = new ServerModel(1, "GAME_01", 25565, "STARTING", $now);
+        $server = new ServerModel(1, "koth_01", "KOTH", 25565, "STARTING", $now);
         self::assertEquals(1, $server->getId());
-        self::assertEquals("GAME_01", $server->getName());
+        self::assertEquals("koth_01", $server->getName());
+        self::assertEquals("KOTH", $server->getType());
         self::assertEquals(25565, $server->getPort());
         self::assertEquals("STARTING", $server->getStatus());
         self::assertEquals($now, $server->getCreationTime());
@@ -45,7 +46,7 @@ class ServerModelTest extends TestCase {
 
     function testSetServer() {
         $now = new \DateTime('now');
-        $server = new ServerModel(1, "GAME_01", 25565, "STARTING", $now);
+        $server = new ServerModel(1, "koth_01", "KOTH", 25565, "STARTING", $now);
 
         $server->setId(2);
         $server->setStatus("STARTED");

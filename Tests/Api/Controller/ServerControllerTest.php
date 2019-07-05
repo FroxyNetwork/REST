@@ -106,41 +106,53 @@ class ServerControllerTest extends TestCase {
         $this->serverController->post("/");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
         // Not name
-        $this->inputStreamUtil->setText('{"port":20001}');
+        $this->inputStreamUtil->setText('{"type":"KOTH","port":20001}');
         $this->serverController->post("/");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
         // Not port
-        $this->inputStreamUtil->setText('{"name":"game_1}"');
+        $this->inputStreamUtil->setText('{"name":"koth_1","type":"KOTH"}"');
+        $this->serverController->post("/");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        // Not Type
+        $this->inputStreamUtil->setText('{"name":"koth_1","port":20001}"');
         $this->serverController->post("/");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
         // Name not string
-        $this->inputStreamUtil->setText('{"name":12, "port":20001}');
+        $this->inputStreamUtil->setText('{"name":12, "type":"KOTH", "port":20001}');
         $this->serverController->post("/");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
         // Name length not correct
-        $this->inputStreamUtil->setText('{"name":"game_1111111111111111111", "port":20001}');
+        $this->inputStreamUtil->setText('{"name":"koth_1111111111111111111", "type":"KOTH", "port":20001}');
+        $this->serverController->post("/");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        // Type not string
+        $this->inputStreamUtil->setText('{"name":"koth_1", "type":12, "port":20001}');
+        $this->serverController->post("/");
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        // Type length not correct
+        $this->inputStreamUtil->setText('{"name":"koth_1", "type":"KOTHHHHHHHHHHHHHHHHHHHHH", "port":20001}');
         $this->serverController->post("/");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
         // Port not int
-        $this->inputStreamUtil->setText('{"name":"game_1", "port":"abcdef"}');
+        $this->inputStreamUtil->setText('{"name":"koth_1", "type":"KOTH", "port":"abcdef"}');
         $this->serverController->post("/");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
         // Port not in range
-        $this->inputStreamUtil->setText('{"name":"game_1", "port":0}');
+        $this->inputStreamUtil->setText('{"name":"koth_1", "type":"KOTH", "port":0}');
         $this->serverController->post("/");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
         // Port not in range
-        $this->inputStreamUtil->setText('{"name":"game_1", "port":65536}');
+        $this->inputStreamUtil->setText('{"name":"koth_1", "type":"KOTH", "port":65536}');
         $this->serverController->post("/");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
         // Correct
-        $this->inputStreamUtil->setText('{"name":"game_1", "port":20001}');
+        $this->inputStreamUtil->setText('{"name":"koth_1", "type":"KOTH", "port":20001}');
         $this->serverController->post("/");
         self::assertFalse($this->responseController->getLastData()['error']);
 
         // No permission
         $this->oauth->setBool(false);
-        $this->inputStreamUtil->setText('{"name":"game_1", "port":20001}');
+        $this->inputStreamUtil->setText('{"name":"koth_1", "type":"KOTH", "port":20001}');
         $this->serverController->post("/");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_FORBIDDEN);
         // Go Back
@@ -149,13 +161,12 @@ class ServerControllerTest extends TestCase {
 
     function testGet() {
         // Add server (for test)
-        $this->inputStreamUtil->setText('{"name":"game_1", "port":20001}');
+        $this->inputStreamUtil->setText('{"name":"koth_1", "type":"KOTH", "port":20001}');
         $this->serverController->post("/");
         $server = $this->responseController->getLastData()['data'];
 
         // Empty data ==> All servers
         $this->serverController->get("/");
-        $this->responseController->getLastData();
         self::assertFalse($this->responseController->getLastData()['error']);
         $servers = $this->responseController->getLastData()['data'];
 
@@ -164,12 +175,13 @@ class ServerControllerTest extends TestCase {
 
         $srv = $servers['servers'][0];
         self::assertEquals($server['id'], $srv['id']);
-        self::assertEquals("game_1", $srv['name']);
+        self::assertEquals("koth_1", $srv['name']);
+        self::assertEquals("KOTH", $srv['type']);
         self::assertEquals("20001", $srv['port']);
         self::assertEquals($server['status'], $srv['status']);
         self::assertEquals($server['creationTime'], $srv['creationTime']);
 
-        $this->inputStreamUtil->setText('{"name":"game_2", "port":20002}');
+        $this->inputStreamUtil->setText('{"name":"uhc_2", "type":"UHC", "port":20002}');
         $this->serverController->post("/");
 
         $this->serverController->get("/");
@@ -184,6 +196,7 @@ class ServerControllerTest extends TestCase {
         $server2 = $this->responseController->getLastData()['data'];
         self::assertEquals($server['id'], $server2['id']);
         self::assertEquals($server['name'], $server2['name']);
+        self::assertEquals($server['type'], $server2['type']);
         self::assertEquals($server['port'], $server2['port']);
         self::assertEquals($server['status'], $server2['status']);
         self::assertEquals($server['creationTime'], $server2['creationTime']);
@@ -201,7 +214,7 @@ class ServerControllerTest extends TestCase {
 
     function testPut() {
         // Add server (for test)
-        $this->inputStreamUtil->setText('{"name":"game_1", "port":20001}');
+        $this->inputStreamUtil->setText('{"name":"koth_1", "type":"KOTH", "port":20001}');
         $this->serverController->post("/");
         $this->responseController->getLastData()['data'];
 
@@ -253,13 +266,13 @@ class ServerControllerTest extends TestCase {
 
     function testDelete() {
         // Add server (for test)
-        $this->inputStreamUtil->setText('{"name":"game_1", "port":20001}');
+        $this->inputStreamUtil->setText('{"name":"koth_1", "type":"KOTH", "port":20001}');
         $this->serverController->post("/");
         $this->responseController->getLastData()['data'];
-        $this->inputStreamUtil->setText('{"name":"game_2", "port":20002}');
+        $this->inputStreamUtil->setText('{"name":"koth_2", "type":"KOTH", "port":20002}');
         $this->serverController->post("/");
         $this->responseController->getLastData()['data'];
-        $this->inputStreamUtil->setText('{"name":"game_3", "port":20003}');
+        $this->inputStreamUtil->setText('{"name":"uhc_3", "type":"UHC", "port":20003}');
         $this->serverController->post("/");
         $this->responseController->getLastData()['data'];
 

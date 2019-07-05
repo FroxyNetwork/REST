@@ -84,6 +84,7 @@ class ServerController extends AppController {
             $response = [
                 "id" => $server->getId(),
                 "name" => $server->getName(),
+                "type" => $server->getType(),
                 "port" => $port,
                 "status" => $server->getStatus(),
                 "creationTime" => Core::formatDate($server->getCreationTime())
@@ -102,6 +103,7 @@ class ServerController extends AppController {
                 $d = [
                     "id" => $server->getId(),
                     "name" => $server->getName(),
+                    "type" => $server->getType(),
                     "port" => ($showPort) ? $server->getPort() : -1,
                     "status" => $server->getStatus(),
                     "creationTime" => Core::formatDate($server->getCreationTime())
@@ -117,7 +119,8 @@ class ServerController extends AppController {
     /**
      * DATA:
      * {
-        "name" => "game_1",
+        "name" => "koth_1",
+        "type" => "KOTH",
         "port" => 20001
      * }
      * @param $param
@@ -138,11 +141,12 @@ class ServerController extends AppController {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_DATA_INVALID);
             return;
         }
-        if (!is_array($data) || empty($data['name']) || !isset($data['port'])) {
+        if (!is_array($data) || empty($data['name']) || empty($data['type']) || !isset($data['port'])) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_DATA_INVALID);
             return;
         }
         $name = $data['name'];
+        $type = $data['type'];
         $port = $data['port'];
         // Check values
         if (!is_string($name)) {
@@ -151,6 +155,14 @@ class ServerController extends AppController {
         }
         if (strlen($name) > 16) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_NAME_LENGTH);
+            return;
+        }
+        if (!is_string($type)) {
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TYPE_INVALID);
+            return;
+        }
+        if (strlen($type) > 16) {
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TYPE_LENGTH);
             return;
         }
         if (!Core::isInteger($port)) {
@@ -162,7 +174,7 @@ class ServerController extends AppController {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_PORT_INVALID);
             return;
         }
-        $s = $this->serverDataController->createServer($name, $port);
+        $s = $this->serverDataController->createServer($name, $type, $port);
         if (!$s) {
             // Error
             if (!empty($GLOBALS['errorCode']))
@@ -188,6 +200,7 @@ class ServerController extends AppController {
         $this->response->ok([
             "id" => $s->getId(),
             "name" => $s->getName(),
+            "type" => $s->getType(),
             "port" => $s->getPort(),
             "status" => $s->getStatus(),
             "creationTime" => Core::formatDate($s->getCreationTime()),
@@ -276,6 +289,7 @@ class ServerController extends AppController {
         $this->response->ok([
             "id" => $s->getId(),
             "name" => $s->getName(),
+            "type" => $s->getType(),
             "port" => $s->getPort(),
             "status" => $s->getStatus(),
             "creationTime" => Core::formatDate($s->getCreationTime())

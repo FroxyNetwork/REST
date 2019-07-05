@@ -59,4 +59,6 @@ interface Error {
     const SERVER_STATUS_INVALID = [206, "Status must be '" . ServerStatus::WAITING . "', '" . ServerStatus::STARTED . "' or '" . ServerStatus::ENDING . "' !"];
     const SERVER_STATUS_BEFORE = [207, "Invalid status, current is {currentStatus} !"];
     const SERVER_ACTUALLY_ENDED = [208, "This server is already ended !"];
+    const SERVER_TYPE_INVALID = [209, "Type must be a string !"];
+    const SERVER_TYPE_LENGTH = [210, "Type length must be between 1 and 16 !"];
 }

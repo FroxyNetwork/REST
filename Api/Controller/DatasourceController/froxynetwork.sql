@@ -170,6 +170,7 @@ DROP TABLE IF EXISTS `server`;
 CREATE TABLE IF NOT EXISTS `server` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(16) NOT NULL,
+  `type` varchar(16) NOT NULL,
   `port` int(11) NOT NULL,
   `status` varchar(16) NOT NULL,
   `creation_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -181,12 +182,12 @@ CREATE TABLE IF NOT EXISTS `server` (
 -- Déchargement des données de la table `server`
 --
 
-INSERT INTO `server` (`id`, `name`, `port`, `status`, `creation_time`, `end_time`) VALUES
-(1, 'hub_1', 20001, 'ENDED', '2019-01-26 21:42:38', '2019-01-26 22:00:00'),
-(2, 'game_2', 20002, 'ENDING', '2019-01-26 21:42:38', NULL),
-(3, 'game_1', 20001, 'ENDED', '2019-01-26 21:10:53', '2019-01-26 22:00:00'),
-(5, 'game_1', 20001, 'STARTING', '2019-01-30 21:30:31', NULL),
-(6, 'game_1', 20001, 'STARTING', '2019-01-30 21:31:08', NULL);
+INSERT INTO `server` (`id`, `name`, `type`, `port`, `status`, `creation_time`, `end_time`) VALUES
+(1, 'hub_1', 'HUB', 20001, 'ENDED', '2019-01-26 21:42:38', '2019-01-26 22:00:00'),
+(2, 'koth_2', 'KOTH', 20002, 'ENDING', '2019-01-26 21:42:38', NULL),
+(3, 'koth_1', 'KOTH', 20003, 'ENDED', '2019-01-26 21:10:53', '2019-01-26 22:00:00'),
+(5, 'uhc_1', 'UHC', 20004, 'STARTING', '2019-01-30 21:30:31', NULL),
+(6, 'uhc_1', 'UHC', 20005, 'STARTING', '2019-01-30 21:31:08', NULL);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
