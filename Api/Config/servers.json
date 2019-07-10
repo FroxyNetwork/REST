@@ -1,0 +1,18 @@
+{
+  "types": [
+    {
+      "id": "koth",
+      "database": ["mob_kill", "block_place", "block_destroy"],
+      "variants": [
+        {
+          "id": "4players",
+          "database": ["esezd"]
+        },
+        {
+          "id": "8players",
+          "database": ["rtgvr"]
+        }
+      ]
+    }
+  ]
+}

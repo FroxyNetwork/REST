@@ -61,4 +61,5 @@ interface Error {
     const SERVER_ACTUALLY_ENDED = [208, "This server is already ended !"];
     const SERVER_TYPE_INVALID = [209, "Type must be a string !"];
     const SERVER_TYPE_LENGTH = [210, "Type length must be between 1 and 16 !"];
+    const INTERNAL_SERVER_JSON = [1000, "Internal Server Error: servers.json is not a valid json file !"];
 }
