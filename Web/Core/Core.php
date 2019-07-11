@@ -60,11 +60,18 @@ class Core {
     private static $database;
 
     /**
+     * @var array La configuration
+     */
+    private static $config;
+
+    /**
      * @var array Liste des variables à ajouter aux controleurs
      */
     private static $list = [];
 
     public static function init() {
+        // Disable error reporting
+        //error_reporting(0);
         // Fix HTTP_AUTHORIZATION
         $httpAuthorization = null;
         if (isset($_SERVER['HTTP_AUTHORIZATION']))
@@ -90,8 +97,25 @@ class Core {
         // Initialisation des controleurs
         self::$_requestController = new RequestController();
         self::$_responseController = new ResponseController();
+        // Load config file
+        try {
+            self::$config = parse_ini_file(API_DIR.DS."Config".DS."config.ini");
+        } catch (\Exception $ex) {
+            self::$config = false;
+        } finally {
+            if (!self::$config) {
+                // config.ini file error
+                self::$_responseController->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_CONFIG);
+                exit;
+            }
+        }
         // TODO Récupérer les paramètres depuis un fichier de config
-        self::$database = new DBController("localhost", 3306, "root", "", "froxynetwork");
+        if (!isset(self::$config['mongodb']) || !isset(self::$config['mongodb_database'])) {
+            // config.ini file error
+            self::$_responseController->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_CONFIG_MONGODB);
+            exit;
+        }
+        self::$database = new DBController(self::$config['mongodb'], self::$config['mongodb_database']);
         self::$list = array();
         // Including Routage
         Route::configure("/");
@@ -214,7 +238,7 @@ class Core {
         $file = self::fileName(self::DATASOURCES, $name);
         $class = "\\Api\\Controller\\DatasourceController\\".$file;
         if (self::$database != null)
-            $impl = new $class(self::$database->get());
+            $impl = new $class(self::$database);
         else
             $impl = new $class(null);
         return $impl;

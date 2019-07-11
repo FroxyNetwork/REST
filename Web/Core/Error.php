@@ -62,4 +62,7 @@ interface Error {
     const SERVER_TYPE_INVALID = [209, "Type must be a string !"];
     const SERVER_TYPE_LENGTH = [210, "Type length must be between 1 and 16 !"];
     const INTERNAL_SERVER_JSON = [1000, "Internal Server Error: servers.json is not a valid json file !"];
+    const INTERNAL_SERVER_CONFIG = [1001, "Internal Server Error: config.ini is not a valid ini file !"];
+    const INTERNAL_SERVER_CONFIG_MONGODB = [1002, "Internal Server Error: config.ini is not a valid ini file !"];
+    const INTERNAL_SERVER_DATABASE = [1003, "Internal Server Error: Cannot contact database !"];
 }
