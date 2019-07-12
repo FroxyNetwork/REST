@@ -64,4 +64,11 @@ function generateAuthorizationCode($ln) {
 
 $websocket = generateClientSecret();
 
-echo "INSERT INTO oauth_clients (client_id, client_secret, scope) VALUES ('${websocket[0]}', '${websocket[1]}', 'server_show_port server_create player_create player_show_realname player_show_ip websocket_check_token');";
+echo "db.oauth_clients.insert({
+    client_id: \"${websocket[0]}\",
+    client_secret: \"${websocket[1]}\",
+    redirect_uri: null,
+    grant_types: null,
+    scope: \"server_show_port server_create player_create player_show_realname player_show_ip websocket_check_token\",
+    user_id: null
+})";
