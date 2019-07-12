@@ -6,7 +6,7 @@ services:
  - mongodb
 
 before_install:
- - sudo pecl install mongodb
+ - pecl install mongodb
  - phpenv config-add travis.ini
 
 before_script:
