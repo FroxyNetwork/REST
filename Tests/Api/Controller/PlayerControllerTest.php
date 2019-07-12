@@ -128,7 +128,6 @@ class PlayerControllerTest extends TestCase {
         self::assertEquals("0ddlyoko", $user['nickname']);
         self::assertEquals("127.0.0.1", $user['ip']);
         // UUID already exists
-        $this->playerController->get("/0ddlyoko");
         $this->inputStreamUtil->setText('{"uuid": "86173d9f-f7f4-4965-8e9d-f37783bf6fa7", "nickname":"0ddlyoko", "ip":"127.0.0.1"}');
         $this->playerController->post("/");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_CONFLICT);
@@ -159,7 +158,6 @@ class PlayerControllerTest extends TestCase {
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_NOTFOUND);
         // UUID not found
         $this->playerController->get("/86173d9f-f7f4-4965-8e9d-f37783bf6fa8");
-        var_dump($this->responseController->getLastData());
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_NOTFOUND);
 
         // Player exist
