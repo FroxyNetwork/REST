@@ -29,11 +29,9 @@
 
 namespace Api\Controller\DatasourceController;
 
-use Api\Model\PlayerModel;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\Collection;
 use Web\Controller\DBController;
-use Web\Core\Core;
 
 class PlayerDataController {
     const ERROR_NOT_FOUND = 1;
@@ -53,21 +51,20 @@ class PlayerDataController {
      */
     function getUserByUUID($uuid) {
         try {
-            $c = $this->db->find(["uuid" => $uuid]);
-            $r = $c->toArray();
-            if (empty($r) || !is_array($r) || count($r) == 0)
+            $c = $this->db->findOne(["uuid" => $uuid]);
+            if (empty($c) || !$c)
                 return false;
             $user = [
-                'uuid' => $r[0]['uuid'],
-                'nickname' => $r[0]['nickname'],
-                'display_name' => $r[0]['display_name'],
-                'coins' => $r[0]['coins'],
-                'level' => $r[0]['level'],
-                'exp' => $r[0]['exp'],
-                'first_login' => $r[0]['first_login']->toDateTime(),
-                'last_login' => $r[0]['last_login']->toDateTime(),
-                'ip' => $r[0]['ip'],
-                'lang' => $r[0]['lang']
+                'uuid' => $c['uuid'],
+                'nickname' => $c['nickname'],
+                'display_name' => $c['display_name'],
+                'coins' => $c['coins'],
+                'level' => $c['level'],
+                'exp' => $c['exp'],
+                'first_login' => $c['first_login']->toDateTime(),
+                'last_login' => $c['last_login']->toDateTime(),
+                'ip' => $c['ip'],
+                'lang' => $c['lang']
             ];
             return $user;
         } catch (\Exception $ex) {
@@ -81,21 +78,20 @@ class PlayerDataController {
      */
     function getUserByPseudo($nickname) {
         try {
-            $c = $this->db->find(["nickname" => $nickname]);
-            $r = $c->toArray();
-            if (empty($r) || !is_array($r) || count($r) == 0)
+            $c = $this->db->findOne(["nickname" => $nickname]);
+            if (empty($c) || !$c)
                 return false;
             $user = [
-                'uuid' => $r[0]['uuid'],
-                'nickname' => $r[0]['nickname'],
-                'display_name' => $r[0]['display_name'],
-                'coins' => $r[0]['coins'],
-                'level' => $r[0]['level'],
-                'exp' => $r[0]['exp'],
-                'first_login' => $r[0]['first_login']->toDateTime(),
-                'last_login' => $r[0]['last_login']->toDateTime(),
-                'ip' => $r[0]['ip'],
-                'lang' => $r[0]['lang']
+                'uuid' => $c['uuid'],
+                'nickname' => $c['nickname'],
+                'display_name' => $c['display_name'],
+                'coins' => $c['coins'],
+                'level' => $c['level'],
+                'exp' => $c['exp'],
+                'first_login' => $c['first_login']->toDateTime(),
+                'last_login' => $c['last_login']->toDateTime(),
+                'ip' => $c['ip'],
+                'lang' => $c['lang']
             ];
             return $user;
         } catch (\Exception $ex) {
@@ -146,7 +142,6 @@ class PlayerDataController {
                 return false;
             return $p;
         } catch (\Exception $ex) {
-            var_dump($ex);
             return false;
         }
     }
