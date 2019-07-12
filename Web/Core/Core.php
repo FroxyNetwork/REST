@@ -115,7 +115,12 @@ class Core {
             self::$_responseController->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_CONFIG_MONGODB);
             exit;
         }
-        self::$database = new DBController(self::$config['mongodb'], self::$config['mongodb_database']);
+        try {
+            self::$database = new DBController(self::$config['mongodb'], self::$config['mongodb_database']);
+        } catch (\Exception $ex) {
+            self::$_responseController->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_DATABASE);
+            exit;
+        }
         self::$list = array();
         // Including Routage
         Route::configure("/");
@@ -128,7 +133,7 @@ class Core {
          * @var $webController WebController
          */
         $webController = self::getAppController("Web");
-        $webController->onLoad(self::$list, self::$database->get());
+        $webController->onLoad(self::$list, self::$database->getDatabase());
         try {
             $appController = self::getAppController($controller);
             if ($appController == null) {

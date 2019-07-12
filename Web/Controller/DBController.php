@@ -28,6 +28,7 @@
 namespace Web\Controller;
 
 use MongoDB\Client;
+use MongoDB\Database;
 
 class DBController {
     /**
@@ -39,7 +40,11 @@ class DBController {
      */
     private $dbName;
     /**
-     * @var Client $db L'objet Client
+     * @var Client $client L'objet Client
+     */
+    private $client;
+    /**
+     * @var Database $db L'objet Database
      */
     private $db;
 
@@ -52,19 +57,20 @@ class DBController {
     function __construct($url, $dbName) {
         $this->url = $url;
         $this->dbName = $dbName;
+        $this->client = new Client($this->url);
+        $this->db = $this->client->selectDatabase($this->dbName);
     }
 
     function getClient() {
+        return $this->client;
+    }
+
+    function getDatabase() {
         return $this->db;
     }
 
     function get($collection) {
-        if (empty($this->db)) {
-            $this->db = new Client($this->url);
-            $this->db->listDatabases();
-        }
-        $dbName = $this->dbName;
-        return $this->db->$dbName->selectCollection($collection);
+        return $this->db->selectCollection($collection);
     }
 
     function close() {

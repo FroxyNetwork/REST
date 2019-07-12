@@ -27,15 +27,15 @@
 
 namespace Api\Controller\DatasourceController;
 
-use OAuth2\Storage\Pdo;
+use OAuth2\Storage\Mongo;
 
 /**
- * Extension de la classe @see Pdo
+ * Extension de la classe @see Mongo
  *
  * Class OAuth2DataController
  * @package Api\Controller\DatasourceController
  */
-class OAuth2DataController extends Pdo {
+class OAuth2DataController extends NewMongo {
     /*
      * $config :
      * ---------------------------------------------------------------------
@@ -67,49 +67,9 @@ class OAuth2DataController extends Pdo {
     }
 
     public function getServer($id) {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT * from %s where id=:id', $this->config['user_table']));
-        $stmt->execute(array('id' => $id));
+        $result = $this->collection('user_table')->findOne(['id' => $id]);
 
-        if (!$userInfo = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            return false;
-        }
-
-        // the default behavior is to use "username" as the user_id
-        return array_merge(array(
-            'user_id' => $id
-        ), $userInfo);
-    }
-
-    /**
-     * Link an access token with an id
-     * Used to identify which server has this id
-     *
-     * @param $user_id int The id of the server
-     * @param $access_token string The token
-     *
-     * @return bool true if correctly edited
-     */
-    public function setAccessTokenId($user_id, $access_token) {
-        // if it exists, update it.
-        $stmt = $this->db->prepare($sql = sprintf('UPDATE %s SET user_id=:user_id where access_token=:access_token', $this->config['access_token_table']));
-
-        return $stmt->execute(compact('user_id', 'access_token'));
-    }
-
-    /**
-     * Check if an access token is linked to an id
-     * Used to authenticate a server through the WebSocket
-     *
-     * @param $user_id int The id of the server
-     * @param $access_token string The token
-     *
-     * @return bool True if specific id and access_token are linked
-     */
-    public function checkServer($user_id, $access_token) {
-        $stmt = $this->db->prepare($sql = sprintf('SELECT COUNT(1) from %s where user_id=:user_id and access_token=:access_token', $this->config['access_token_table']));
-        $stmt->execute(array('id' => $user_id, 'access_token' => $access_token));
-
-        return $stmt->fetch(\PDO::FETCH_ASSOC);
+        return is_null($result) ? false : $result;
     }
 
     /**
@@ -127,81 +87,6 @@ class OAuth2DataController extends Pdo {
      * @return bool True if succesfully created
      */
     public function createClient($client_id, $client_secret, $scope, $user_id) {
-        // if it exists, update it.
-        $stmt = $this->db->prepare($sql = sprintf('INSERT INTO %s (client_id, client_secret, scope, user_id) VALUES (:client_id, :client_secret, :scope, :user_id)', $this->config['client_table']));
-
-        return $stmt->execute(compact('client_id', 'client_secret', 'scope', 'user_id'));
-    }
-
-    public function getBuildSql($dbName = 'froxynetwork') {
-        $sql = "
-        CREATE TABLE {$this->config['client_table']} (
-          client_id            VARCHAR(80)   NOT NULL,
-          client_secret        VARCHAR(80),
-          redirect_uri         VARCHAR(2000),
-          grant_types          VARCHAR(80),
-          scope                VARCHAR(4000),
-          user_id              VARCHAR(80),
-          PRIMARY KEY (client_id)
-        );
-        CREATE TABLE {$this->config['access_token_table']} (
-          access_token         VARCHAR(40)    NOT NULL,
-          client_id            VARCHAR(80)    NOT NULL,
-          user_id              VARCHAR(80),
-          expires              TIMESTAMP      NOT NULL,
-          scope                VARCHAR(4000),
-          PRIMARY KEY (access_token)
-        );
-        CREATE TABLE {$this->config['code_table']} (
-          authorization_code   VARCHAR(40)    NOT NULL,
-          client_id            VARCHAR(80)    NOT NULL,
-          user_id              VARCHAR(80),
-          redirect_uri         VARCHAR(2000),
-          expires              TIMESTAMP      NOT NULL,
-          scope                VARCHAR(4000),
-          id_token             VARCHAR(1000),
-          PRIMARY KEY (authorization_code)
-        );
-        CREATE TABLE {$this->config['refresh_token_table']} (
-          refresh_token        VARCHAR(40)    NOT NULL,
-          client_id            VARCHAR(80)    NOT NULL,
-          user_id              VARCHAR(80),
-          expires              TIMESTAMP      NOT NULL,
-          scope                VARCHAR(4000),
-          PRIMARY KEY (refresh_token)
-        );
-        CREATE TABLE {$this->config['user_table']} (
-          id                   INT(11)        NOT NULL AUTO_INCREMENT,
-          name                 VARCHAR(16)    NOT NULL,
-          port                 INT(11),
-          status               VARCHAR(16)    NOT NULL,
-          creation_time        DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-          scope                VARCHAR(4000)
-        );
-        CREATE TABLE {$this->config['scope_table']} (
-          scope                VARCHAR(80)  NOT NULL,
-          is_default           BOOLEAN,
-          PRIMARY KEY (scope)
-        );
-        CREATE TABLE {$this->config['jwt_table']} (
-          client_id            VARCHAR(80)   NOT NULL,
-          subject              VARCHAR(80),
-          public_key           VARCHAR(2000) NOT NULL
-        );
-        CREATE TABLE {$this->config['jti_table']} (
-          issuer               VARCHAR(80)   NOT NULL,
-          subject              VARCHAR(80),
-          audiance             VARCHAR(80),
-          expires              TIMESTAMP     NOT NULL,
-          jti                  VARCHAR(2000) NOT NULL
-        );
-        CREATE TABLE {$this->config['public_key_table']} (
-          client_id            VARCHAR(80),
-          public_key           VARCHAR(2000),
-          private_key          VARCHAR(2000),
-          encryption_algorithm VARCHAR(100) DEFAULT 'RS256'
-        )
-        ";
-        return $sql;
+        return $this->setClientDetails($client_id, $client_secret, null, null, $scope, $user_id);
     }
 }
