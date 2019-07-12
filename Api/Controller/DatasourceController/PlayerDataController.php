@@ -34,8 +34,6 @@ use MongoDB\Collection;
 use Web\Controller\DBController;
 
 class PlayerDataController {
-    const ERROR_NOT_FOUND = 1;
-    const ERROR_UNKNOWN = 2;
     /**
      * @var Collection $db
      */
@@ -51,11 +49,11 @@ class PlayerDataController {
      */
     function getUserByUUID($uuid) {
         try {
-            $c = $this->db->findOne(["uuid" => $uuid]);
+            $c = $this->db->findOne(["_id" => $uuid]);
             if (empty($c) || !$c)
                 return false;
             $user = [
-                'uuid' => $c['uuid'],
+                'uuid' => $c['_id'],
                 'nickname' => $c['nickname'],
                 'display_name' => $c['display_name'],
                 'coins' => $c['coins'],
@@ -82,7 +80,7 @@ class PlayerDataController {
             if (empty($c) || !$c)
                 return false;
             $user = [
-                'uuid' => $c['uuid'],
+                'uuid' => $c['_id'],
                 'nickname' => $c['nickname'],
                 'display_name' => $c['display_name'],
                 'coins' => $c['coins'],
@@ -121,7 +119,7 @@ class PlayerDataController {
                 'ip' => $ip,
                 'lang' => 'fr_FR'
             ];
-            $c = $this->db->insertOne(['uuid' => $user['uuid'], 'nickname' => $user['nickname'], 'display_name' => $user['display_name'], 'coins' => $user['coins'], 'level' => $user['level'], 'exp' => $user['exp'], 'first_login' => new UTCDateTime($user['first_login']->getTimestamp() * 1000), 'last_login' => new UTCDateTime($user['last_login']->getTimestamp() * 1000), 'ip' => $user['ip'], 'lang' => $user['lang']]);
+            $c = $this->db->insertOne(['_id' => $user['uuid'], 'nickname' => $user['nickname'], 'display_name' => $user['display_name'], 'coins' => $user['coins'], 'level' => $user['level'], 'exp' => $user['exp'], 'first_login' => new UTCDateTime($user['first_login']->getTimestamp() * 1000), 'last_login' => new UTCDateTime($user['last_login']->getTimestamp() * 1000), 'ip' => $user['ip'], 'lang' => $user['lang']]);
             if ($c->getInsertedCount() != 1)
                 return false;
             return $user;
@@ -137,7 +135,7 @@ class PlayerDataController {
      */
     function updateUser($p) {
         try {
-            $c = $this->db->updateOne(["uuid" => $p['uuid']], ['$set' => ['nickname' => $p['nickname'], 'display_name' => $p['display_name'], 'coins' => $p['coins'], 'level' => $p['level'], 'exp' => $p['exp'], 'last_login' => new UTCDateTime($p['last_login']->getTimestamp() * 1000), 'ip' => $p['ip'], 'lang' => $p['lang']]]);
+            $c = $this->db->updateOne(["_id" => $p['uuid']], ['$set' => ['nickname' => $p['nickname'], 'display_name' => $p['display_name'], 'coins' => $p['coins'], 'level' => $p['level'], 'exp' => $p['exp'], 'last_login' => new UTCDateTime($p['last_login']->getTimestamp() * 1000), 'ip' => $p['ip'], 'lang' => $p['lang']]]);
             if ($c->getModifiedCount() != 1)
                 return false;
             return $p;
