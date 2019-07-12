@@ -59,38 +59,29 @@ class ServerController extends AppController {
         $ln = strlen($param);
         if ($ln >= 1) {
             // Search server
-            if (!Core::isInteger($param)) {
+            if (!ctype_xdigit($param)) {
                 $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_ID_INVALID);
                 return;
             }
             $server = $this->serverDataController->getServer($param);
             if (!$server) {
-                if (!empty($GLOBALS['errorCode']) && $GLOBALS['errorCode'] == ServerDataController::ERROR_NOT_FOUND) {
-                    // Server not found
-                    $this->response->error($this->response::ERROR_NOTFOUND, Error::SERVER_NOT_FOUND);
-                    return;
-                }
-                // Error
-                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_ERROR, ["errorCode" => $GLOBALS['errorCode'], "error" => $GLOBALS['error']]);
-                return;
-            } else if ($server == null) {
-                // Unknown error
-                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_UNKNOWN);
+                // Server not found
+                $this->response->error($this->response::ERROR_NOTFOUND, Error::SERVER_NOT_FOUND);
                 return;
             }
             $port = -1;
             if ($oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_SHOW_PORT))
-                $port = $server->getPort();
+                $port = $server['port'];
             $response = [
-                "id" => $server->getId(),
-                "name" => $server->getName(),
-                "type" => $server->getType(),
+                "id" => $server['id'],
+                "name" => $server['name'],
+                "type" => $server['type'],
                 "port" => $port,
-                "status" => $server->getStatus(),
-                "creationTime" => Core::formatDate($server->getCreationTime())
+                "status" => $server['status'],
+                "creationTime" => Core::formatDate($server['creation_time'])
             ];
-            if (!is_null($server->getEndTime()))
-                $response["endTime"] = Core::formatDate($server->getEndTime());
+            if (isset($v['end_time']) && !is_null($server['end_time']))
+                $response["endTime"] = Core::formatDate($server['end_time']);
             $this->response->ok($response);
         } else {
             // Search all opened server
@@ -101,15 +92,15 @@ class ServerController extends AppController {
             $showPort = $oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_SHOW_PORT);
             foreach ($servers as $server) {
                 $d = [
-                    "id" => $server->getId(),
-                    "name" => $server->getName(),
-                    "type" => $server->getType(),
-                    "port" => ($showPort) ? $server->getPort() : -1,
-                    "status" => $server->getStatus(),
-                    "creationTime" => Core::formatDate($server->getCreationTime())
+                    "id" => $server['id'],
+                    "name" => $server['name'],
+                    "type" => $server['type'],
+                    "port" => ($showPort) ? $server['port'] : -1,
+                    "status" => $server['status'],
+                    "creationTime" => Core::formatDate($server['creation_time'])
                 ];
-                if (!is_null($server->getEndTime()))
-                    $d["endTime"] = Core::formatDate($server->getEndTime());
+                if (isset($v['end_time']) && !is_null($server['end_time']))
+                    $d["endTime"] = Core::formatDate($server['end_time']);
                 $data['servers'][] = $d;
             }
             $this->response->ok($data);
@@ -177,33 +168,30 @@ class ServerController extends AppController {
         $s = $this->serverDataController->createServer($name, $type, $port);
         if (!$s) {
             // Error
-            if (!empty($GLOBALS['errorCode']))
-                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_ERROR, ["errorCode" => $GLOBALS['errorCode'], "error" => $GLOBALS['error']]);
-            else
-                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_UNKNOWN);
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_UNKNOWN);
             return;
         }
-        $clientSecret = $this->generateClientSecret($s->getId());
+        $clientSecret = $this->generateClientSecret($s['type']);
         /**
          * @var $oauth2DataController OAuth2DataController
          */
         $oauth2DataController = $this->oauth_storage;
 		$scope = "server_show_port player_show_realname player_show_ip";
-        if (!$oauth2DataController->createClient($clientSecret[0], $clientSecret[1], $scope, $s->getId())) {
+        if (!$oauth2DataController->createClient($clientSecret[0], $clientSecret[1], $scope, $s['id'])) {
             // Error, we delete the server created previously
-            $this->serverDataController->deleteServer($s->getId());
+            $this->serverDataController->deleteServer($s['id']);
 
             $this->response->error($this->response::SERVER_INTERNAL, Error::SERVER_SAVING);
             return;
         }
         // Ok, create
         $this->response->ok([
-            "id" => $s->getId(),
-            "name" => $s->getName(),
-            "type" => $s->getType(),
-            "port" => $s->getPort(),
-            "status" => $s->getStatus(),
-            "creationTime" => Core::formatDate($s->getCreationTime()),
+            "id" => $s['id'],
+            "name" => $s['name'],
+            "type" => $s['type'],
+            "port" => $s['port'],
+            "status" => $s['status'],
+            "creationTime" => Core::formatDate($s['creation_time']),
             "auth" => [
                 "client_id" => $clientSecret[0],
                 "client_secret" => $clientSecret[1]
@@ -243,7 +231,7 @@ class ServerController extends AppController {
         $id = $param;
         $data = json_decode($this->request->readInput(),TRUE);
         // Check values
-        if (!Core::isInteger($id)) {
+        if (!ctype_xdigit($id)) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_ID_INVALID);
             return;
         }
@@ -271,12 +259,12 @@ class ServerController extends AppController {
             return;
         }
         // On teste si le status est bon
-        if (!ServerStatus::isAfter($status, $s->getStatus())) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_STATUS_BEFORE, ["currentStatus" => $s->getStatus()]);
+        if (!ServerStatus::isAfter($status, $s['status'])) {
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_STATUS_BEFORE, ["currentStatus" => $s['status']]);
             return;
         }
         // Tout est bon, on update les valeurs
-        $s->setStatus($status);
+        $s['status'] = $status;
         $s2 = $this->serverDataController->updateServer($s);
         if (!$s2) {
             // Error
@@ -287,12 +275,12 @@ class ServerController extends AppController {
             return;
         }
         $this->response->ok([
-            "id" => $s->getId(),
-            "name" => $s->getName(),
-            "type" => $s->getType(),
-            "port" => $s->getPort(),
-            "status" => $s->getStatus(),
-            "creationTime" => Core::formatDate($s->getCreationTime())
+            "id" => $s['id'],
+            "name" => $s['name'],
+            "type" => $s['type'],
+            "port" => $s['port'],
+            "status" => $s['status'],
+            "creationTime" => Core::formatDate($s['creation_time'])
         ], $this->response::SUCCESS_CREATED);
         return;
     }
@@ -316,7 +304,7 @@ class ServerController extends AppController {
         }
         $id = $param;
         // Check values
-        if (!Core::isInteger($id)) {
+        if (!ctype_xdigit($id)) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_ID_INVALID);
             return;
         }
@@ -327,7 +315,7 @@ class ServerController extends AppController {
             $this->response->error($this->response::ERROR_NOTFOUND, Error::SERVER_NOT_FOUND);
             return;
         }
-        if ($s->getStatus() == ServerStatus::ENDED) {
+        if ($s['status'] == ServerStatus::ENDED) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_ACTUALLY_ENDED);
             return;
         }

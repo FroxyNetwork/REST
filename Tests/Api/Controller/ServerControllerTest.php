@@ -72,7 +72,7 @@ class ServerControllerTest extends TestCase {
     private $responseController;
 
     protected function setUp() {
-        $this->dbController = new DBController('localhost', 3306, 'root', '', 'froxynetwork_test');
+        $this->dbController = new DBController('mongodb://127.0.0.1:27017', 'froxynetwork_test');
         Core::setDatabase($this->dbController);
         $this->serverController = Core::getAppController("Server");
         $this->oauth = new OAuthServerUtil();
@@ -80,12 +80,12 @@ class ServerControllerTest extends TestCase {
         $this->inputStreamUtil = new InputStreamImpl();
         $this->serverController->request = new RequestControllerImpl();
         $this->serverController->request->setInputStream($this->inputStreamUtil);
-        $this->oauthStorage = new OAuth2DataController($this->dbController->get());
+        $this->oauthStorage = new OAuth2DataController($this->dbController->getDatabase());
         $this->serverController->oauth_storage = $this->oauthStorage;
         $this->responseController = new ResponseControllerImpl();
         $this->responseController->setEcho(false);
         $this->serverController->response = $this->responseController;
-        DBUtil::clearTables($this->dbController);
+        DBUtil::clearTables($this->dbController, 'froxynetwork_test');
     }
 
     function testRandom() {
@@ -216,49 +216,49 @@ class ServerControllerTest extends TestCase {
         // Add server (for test)
         $this->inputStreamUtil->setText('{"name":"koth_1", "type":"KOTH", "port":20001}');
         $this->serverController->post("/");
-        $this->responseController->getLastData()['data'];
+        $id = $this->responseController->getLastData()['data']['id'];
 
         // Not id
         $this->inputStreamUtil->setText('{"status":"STARTED"}');
         $this->serverController->put("/");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
-        // Not integer
+        // Not hex
         $this->inputStreamUtil->setText('{"status":"STARTED"}');
-        $this->serverController->put("/aaaaa");
+        $this->serverController->put("/5d290d06c7487b0ea0002bfG");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
         // Empty data
         $this->inputStreamUtil->setText('');
-        $this->serverController->put("/1");
+        $this->serverController->put("/{$id}");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
         // Not status
         $this->inputStreamUtil->setText('{"another":"other"}');
-        $this->serverController->put("/1");
+        $this->serverController->put("/{$id}");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
         // Status not string
         $this->inputStreamUtil->setText('{"status":1}');
-        $this->serverController->put("/1");
+        $this->serverController->put("/{$id}");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
         // Status not correct
         $this->inputStreamUtil->setText('{"status":"NOTASTATUS"}');
-        $this->serverController->put("/1");
+        $this->serverController->put("/{$id}");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
         // Server not found
         $this->inputStreamUtil->setText('{"status":"WAITING"}');
-        $this->serverController->put("/2");
+        $this->serverController->put("/aaaaaaaaaaaaaaaaaaaaaaaa");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_NOTFOUND);
         // Correct
         $this->inputStreamUtil->setText('{"status":"WAITING"}');
-        $this->serverController->put("/1");
+        $this->serverController->put("/{$id}");
         self::assertFalse($this->responseController->getLastData()['error']);
         // Incorrect (Cannot have an old or the same status)
         $this->inputStreamUtil->setText('{"status":"WAITING"}');
-        $this->serverController->put("/1");
+        $this->serverController->put("/{$id}");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
 
         // No permission
         $this->oauth->setBool(false);
         $this->inputStreamUtil->setText('{"status":"STARTED"}');
-        $this->serverController->put("/1");
+        $this->serverController->put("/{$id}");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_FORBIDDEN);
         // Go Back
         $this->oauth->setBool(true);
@@ -268,29 +268,29 @@ class ServerControllerTest extends TestCase {
         // Add server (for test)
         $this->inputStreamUtil->setText('{"name":"koth_1", "type":"KOTH", "port":20001}');
         $this->serverController->post("/");
-        $this->responseController->getLastData()['data'];
+        $id1 = $this->responseController->getLastData()['data']['id'];
         $this->inputStreamUtil->setText('{"name":"koth_2", "type":"KOTH", "port":20002}');
         $this->serverController->post("/");
-        $this->responseController->getLastData()['data'];
+        $id2 = $this->responseController->getLastData()['data']['id'];
         $this->inputStreamUtil->setText('{"name":"uhc_3", "type":"UHC", "port":20003}');
         $this->serverController->post("/");
-        $this->responseController->getLastData()['data'];
+        $id3 = $this->responseController->getLastData()['data']['id'];
 
         // Not id
         $this->inputStreamUtil->setText('');
         $this->serverController->delete("/");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
-        // Not integer
-        $this->serverController->delete("/aaaaa");
+        // Not hex
+        $this->serverController->delete("/5d290d06c7487b0ea0002bfG");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
         // Server not found
-        $this->serverController->delete("/5");
+        $this->serverController->delete("/aaaaaaaaaaaaaaaaaaaaaaaa");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_NOTFOUND);
         // Correct
-        $this->serverController->delete("/1");
+        $this->serverController->delete("/{$id1}");
         self::assertFalse($this->responseController->getLastData()['error']);
-        // Incorrect (Cannot have an old or the same status)
-        $this->serverController->delete("/1");
+        // Incorrect (Cannot delete again)
+        $this->serverController->delete("/{$id1}");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
 
         $this->serverController->get("/");
@@ -301,7 +301,7 @@ class ServerControllerTest extends TestCase {
         // No permission
         $this->oauth->setBool(false);
         $this->inputStreamUtil->setText('{"status":"STARTED"}');
-        $this->serverController->delete("/1");
+        $this->serverController->delete("/{$id2}");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_FORBIDDEN);
         // Go Back
         $this->oauth->setBool(true);
