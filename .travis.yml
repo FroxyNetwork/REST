@@ -7,7 +7,6 @@ services:
 
 before_install:
  - pecl install mongodb
- - phpenv config-add travis.ini
 
 before_script:
  - composer install --prefer-source --no-interaction
