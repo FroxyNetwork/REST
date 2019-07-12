@@ -27,6 +27,7 @@
 
 namespace Api\Controller\DatasourceController;
 
+use MongoDB\BSON\ObjectId;
 use OAuth2\Storage\Mongo;
 
 /**
@@ -84,9 +85,9 @@ class OAuth2DataController extends NewMongo {
      * @param $client_secret string The client_secret
      * @param $scope string The scope of the client
      * @param $user_id int The id of the server
-     * @return bool True if succesfully created
+     * @return bool True if successfully created
      */
     public function createClient($client_id, $client_secret, $scope, $user_id) {
-        return $this->setClientDetails($client_id, $client_secret, null, null, $scope, $user_id);
+        return $this->setClientDetails($client_id, $client_secret, null, null, $scope, new ObjectId($user_id));
     }
 }
