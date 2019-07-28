@@ -35,6 +35,7 @@ interface Error {
     const GLOBAL_CONTROLLER_NOT_FOUND = [5, "No controller found for your request !"];
     const GLOBAL_UNKNOWN_ERROR = [6, "An error has occured while performing the operation"];
     const GLOBAL_TOKEN_INVALUD = [7, "Invalid Token, Please save your informations and refresh your page !"];
+    const ROUTE_NOT_FOUND = [8, "This route doesn't exist"];
     const PLAYER_DATA_LENGTH = [100, "The length of the search must be between 1 and 20, or equals to 36."];
     const PLAYER_NOT_FOUND = [101, "Player not found"];
     const PLAYER_UUID_LENGTH = [102, "UUID length must be 36 !"];

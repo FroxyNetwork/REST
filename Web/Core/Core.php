@@ -109,7 +109,6 @@ class Core {
                 exit;
             }
         }
-        // TODO Récupérer les paramètres depuis un fichier de config
         if (!isset(self::$config['mongodb']) || !isset(self::$config['mongodb_database'])) {
             // config.ini file error
             self::$_responseController->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_CONFIG_MONGODB);
@@ -123,10 +122,14 @@ class Core {
         }
         self::$list = array();
         // Including Routage
-        Route::configure("/");
+        Route::configure(isset(self::$config['default_route']) ? self::$config['default_route'] : "/");
         include API_DIR.DS."Config".DS."Routage.php";
         $path = self::$_requestController->getPath();
         $route = Route::getRoute($path);
+        if (is_null($route) || !is_array($route) || sizeof($route) == 0) {
+            self::$_responseController->error(self::$_responseController::ERROR_NOTFOUND, Error::ROUTE_NOT_FOUND);
+            return;
+        }
         $controller = $route['controller'];
         $params = $route['param'];
         /**
