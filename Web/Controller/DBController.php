@@ -59,6 +59,8 @@ class DBController {
         $this->dbName = $dbName;
         $this->client = new Client($this->url);
         $this->db = $this->client->selectDatabase($this->dbName);
+        // Check connection
+        $this->db->listCollections();
     }
 
     function getClient() {
