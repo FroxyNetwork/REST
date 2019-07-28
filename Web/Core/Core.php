@@ -139,12 +139,12 @@ class Core {
         $webController->onLoad(self::$list, self::$database->getDatabase());
         try {
             $appController = self::getAppController($controller);
+            self::$_responseController->setAppController($appController);
             if ($appController == null) {
                 // Erreur
                 self::$_responseController->error(self::$_responseController::ERROR_NOTFOUND, Error::GLOBAL_CONTROLLER_NOT_FOUND);
                 return;
             }
-
             switch (self::$_requestController->getMethod()) {
                 case "GET":
                     $appController->get($params);

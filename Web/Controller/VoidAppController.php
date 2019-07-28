@@ -25,28 +25,14 @@
  * @author 0ddlyoko
  */
 
-namespace Api\Controller;
+namespace Web\Controller;
 
-use OAuth2\Request;
-use OAuth2\Server;
-use Web\Controller\AppController;
-
-class OAuth2Controller extends AppController {
-
-    /**
-     * Get the access token
-     *
-     * @param $param
-     */
-    public function post($param) {
-        /**
-         * @var Server $oauth
-         */
-        $oauth = $this->oauth;
-        $oauth->handleTokenRequest(Request::createFromGlobals())->send();
-    }
+/**
+ * Une classe "Vide"
+ */
+class VoidAppController extends AppController {
 
     public function implementedMethods() {
-        return ["POST"];
+        return [];
     }
 }

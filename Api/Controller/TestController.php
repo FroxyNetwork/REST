@@ -48,4 +48,8 @@ class TestController extends AppController {
     public function delete($param) {
         $this->response->ok(["METHODE" => "DELETE"]);
     }
+
+    public function implementedMethods() {
+        return ["GET", "POST", "PUT", "DELETE"];
+    }
 }

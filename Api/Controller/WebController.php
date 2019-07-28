@@ -86,4 +86,8 @@ class WebController extends AppController {
     function onUnload() {
 
     }
+
+    public function implementedMethods() {
+        return [];
+    }
 }

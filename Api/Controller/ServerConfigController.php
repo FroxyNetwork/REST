@@ -51,4 +51,8 @@ class ServerConfigController extends AppController {
             $this->response->ok($parsedJson);
         }
     }
+
+    public function implementedMethods() {
+        return ["GET"];
+    }
 }

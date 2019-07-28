@@ -311,4 +311,8 @@ class PlayerController extends AppController {
         ], $this->response::SUCCESS_OK);
         return;
     }
+
+    public function implementedMethods() {
+        return ["GET", "POST", "PUT"];
+    }
 }

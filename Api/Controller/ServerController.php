@@ -329,6 +329,10 @@ class ServerController extends AppController {
         $this->response->ok();
     }
 
+    public function implementedMethods() {
+        return ["GET", "POST", "PUT", "DELETE"];
+    }
+
     /**
      * Generate a client_id and a client_secret (Used for Java servers)
      *

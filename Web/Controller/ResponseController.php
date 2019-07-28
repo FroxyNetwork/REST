@@ -50,6 +50,22 @@ class ResponseController {
     const SERVER_NOT_IMPLEMENTED = 501;
 
     /**
+     * @var AppController $appController L'AppController
+     */
+    private $appController;
+
+    public function __construct() {
+        $this->appController = new VoidAppController();
+    }
+
+    /**
+     * @param AppController $appController L'AppController
+     */
+    public function setAppController(AppController $appController) {
+        $this->appController = $appController;
+    }
+
+    /**
      * Crée un message en JSON qui sera envoyé
      *
      * @param mixed $data Les données à envoyer
@@ -135,11 +151,32 @@ class ResponseController {
     }
 
     /**
+     * Envoyer rien du tout (un vide)
+     */
+    public function void() {
+        $this->send(null);
+    }
+
+    /**
      * Envoyer un message au format json
      *
      * @param $data array Les données à afficher
      */
     protected function send($data) {
+        $methods = "";
+        foreach ($this->appController->implementedMethods() as $m) {
+            if ($methods != "")
+                $methods .= ", ";
+            $methods .= $m;
+        }
+        header("Access-Control-Allow-Origin: *");
+        header("Access-Control-Allow-Methods: ${methods}");
+        header("Access-Control-Allow-Headers: Origin, Content-Type");
+
+        // Show nothing
+        if (is_null($data))
+            return;
+
         header('Content-Type:application/json');
         if (isset($data['code']))
             http_response_code($data['code']);
