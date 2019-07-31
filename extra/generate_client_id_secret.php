@@ -28,10 +28,8 @@
 /*
  * This file will generate a random client ID and client SECRET used for the WebSocket.
  * Once it's created:
- * - go to your database
- * - click on tab "SQL"
- * - Enter the sql request that is prompted on your screen
- * - TODO Configure WebSocket
+ * - go to your mongodb database
+ * - execute the code that is prompted on your screen
  */
 
 
