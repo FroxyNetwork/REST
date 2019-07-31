@@ -168,7 +168,7 @@ class ServerController extends AppController {
         $s = $this->serverDataController->createServer($name, $type, $port);
         if (!$s) {
             // Error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_UNKNOWN);
+            $this->response->error($this->response::SERVER_INTERNAL, Error::GLOBAL_UNKNOWN_ERROR);
             return;
         }
         $clientSecret = $this->generateClientSecret($s['type']);
@@ -267,11 +267,7 @@ class ServerController extends AppController {
         $s['status'] = $status;
         $s2 = $this->serverDataController->updateServer($s);
         if (!$s2) {
-            // Error
-            if (!empty($GLOBALS['errorCode']))
-                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_ERROR, ["errorCode" => $GLOBALS['errorCode'], "error" => $GLOBALS['error']]);
-            else
-                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_UNKNOWN);
+            $this->response->error($this->response::SERVER_INTERNAL, Error::GLOBAL_UNKNOWN_ERROR);
             return;
         }
         $this->response->ok([
@@ -320,10 +316,20 @@ class ServerController extends AppController {
             return;
         }
 
+        if ($s['status'] == ServerStatus::STARTING) {
+            // If status is "STARTING", we'll delete it instead of closing it
+            if (!$this->serverDataController->deleteServer($s['id'])) {
+                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_UNKNOWN_ERROR);
+                return;
+            }
+            $this->response->ok();
+            return;
+        }
+
         // Update
         if (!$this->serverDataController->closeServer($id)) {
             // Error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_ERROR, ["errorCode" => $GLOBALS['errorCode'], "error" => $GLOBALS['error']]);
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_UNKNOWN_ERROR);
             return;
         }
         $this->response->ok();

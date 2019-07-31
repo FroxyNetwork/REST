@@ -160,7 +160,7 @@ class PlayerController extends AppController {
         $p = $this->playerDataController->createUser($uuid, $nickname, $ip);
         if (!$p) {
             // Unknown error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_UNKNOWN);
+            $this->response->error($this->response::SERVER_INTERNAL, Error::GLOBAL_UNKNOWN_ERROR);
             return;
         }
         $this->response->ok([
@@ -288,13 +288,9 @@ class PlayerController extends AppController {
         $p['ip'] = $ip;
         $p['lang'] = $lang;
         $p2 = $this->playerDataController->updateUser($p);
-        if (!empty($GLOBALS['errorCode'])) {
-            // Error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_ERROR, ["errorCode" => $GLOBALS['errorCode'], "error" => $GLOBALS['error']]);
-            return;
-        } else if ($p2 == null) {
+        if ($p2 == null) {
             // Unknown error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_UNKNOWN);
+            $this->response->error($this->response::SERVER_INTERNAL, Error::GLOBAL_UNKNOWN_ERROR);
             return;
         }
         $this->response->ok([
