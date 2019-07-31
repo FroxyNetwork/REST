@@ -291,7 +291,7 @@ class ServerControllerTest extends TestCase {
         self::assertFalse($this->responseController->getLastData()['error']);
         // Incorrect (Cannot delete again)
         $this->serverController->delete("/{$id1}");
-        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_BAD_REQUEST);
+        self::assertError($this->responseController->getLastData(), ResponseController::ERROR_NOTFOUND);
 
         $this->serverController->get("/");
         $srvs = $this->responseController->getLastData();
