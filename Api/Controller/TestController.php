@@ -31,10 +31,8 @@ use Web\Controller\AppController;
 
 class TestController extends AppController {
 
-
     public function get($param) {
         $this->response->ok(["METHODE" => "GET", "URL" => $this->request->getURL(true, true)]);
-       // Response::send(["Token" => $this->token->get()]);
     }
 
     public function post($param) {
