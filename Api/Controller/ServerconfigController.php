@@ -31,21 +31,36 @@ use Web\Controller\ResponseController;
 use Web\Core\Core;
 use Web\Core\Error;
 
-class ServerConfigController extends AppController {
+class ServerconfigController extends AppController {
 
     public function get($param) {
+        /**
+         * @var ServerConfig $serverConfig
+         */
+        $serverConfig = $this->serverConfig;
         if (Core::startsWith($param, "/"))
             $param = substr($param, 1);
         $ln = strlen($param);
         if ($ln >= 1) {
-            
+            // Return servers.json file
+            $parsedJson = $serverConfig->getParsedJson();
+            if (!$parsedJson) {
+                // Json error
+                $this->response->error($serverConfig->getErrorType()[0], $serverConfig->getErrorType()[1]);
+                exit;
+            }
+            if (!$serverConfig->exist($param)) {
+                // Json error
+                $this->response->error(ResponseController::ERROR_NOTFOUND, Error::NOT_FOUND);
+                exit;
+            }
+            $this->response->ok($serverConfig->get($param));
         } else {
             // Return servers.json file
-            $json = file_get_contents(API_DIR.DS."Config".DS."servers.json");
-            $parsedJson = json_decode($json);
-            if (!$parsedJson || json_last_error() != JSON_ERROR_NONE) {
+            $parsedJson = $serverConfig->getParsedJson();
+            if (!$parsedJson) {
                 // Json error
-                $this->response->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON);
+                $this->response->error($serverConfig->getErrorType()[0], $serverConfig->getErrorType()[1]);
                 exit;
             }
             $this->response->ok($parsedJson);

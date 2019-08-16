@@ -58,6 +58,7 @@ class WebController extends AppController {
         // OAuth2
         $this->loadOAuth2($list);
         $this->loadToken($list);
+        $this->loadServerConfig($list);
     }
 
     function loadOAuth2(array &$list) {
@@ -78,6 +79,11 @@ class WebController extends AppController {
         $tokenController = Core::getAppController("Token");
         $tokenController->load();
         $list['token'] = $tokenController;
+    }
+
+    function loadServerConfig(array &$list) {
+        $serverConfig = new ServerConfig();
+        $list['serverConfig'] = $serverConfig;
     }
 
     /**

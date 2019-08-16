@@ -69,7 +69,7 @@ class ServerdownloaderController extends AppController {
             $this->response->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON);
             exit;
         }
-        
+
         $this->response->ok([
             "src" => $type,
             "result" => $matches[0]
