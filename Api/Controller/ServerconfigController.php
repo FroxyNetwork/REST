@@ -25,7 +25,6 @@
 
 namespace Api\Controller;
 
-use OAuth2\Server;
 use Web\Controller\AppController;
 use Web\Controller\ResponseController;
 use Web\Core\Core;
@@ -42,7 +41,13 @@ class ServerconfigController extends AppController {
             $param = substr($param, 1);
         $ln = strlen($param);
         if ($ln >= 1) {
-            // Return servers.json file
+            $type = $param;
+            preg_match('/[a-zA-Z0-9_]+/', $type, $matches);
+            if (!isset($matches) || !is_array($matches) || count($matches) != 1 || $matches[0] != $type) {
+                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TYPE_INVALID);
+                return;
+            }
+            
             $parsedJson = $serverConfig->getParsedJson();
             if (!$parsedJson) {
                 // Json error
