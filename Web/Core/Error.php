@@ -66,5 +66,6 @@ interface Error {
     const INTERNAL_SERVER_CONFIG = [1001, "Internal Server Error: config.ini is not a valid ini file !"];
     const INTERNAL_SERVER_CONFIG_MONGODB = [1002, "Internal Server Error: config.ini is not a valid ini file !"];
     const INTERNAL_SERVER_DATABASE = [1003, "Internal Server Error: Cannot contact database !"];
-    const NOT_FOUND = [1004, "Not found"];
+    const SERVER_TYPE_NOT_FOUND = [1004, "Server type not found !"];
+    const SERVER_TYPE_FILE_NOT_FOUND = [1005, "Server file not found !"];
 }

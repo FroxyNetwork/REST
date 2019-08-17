@@ -5,11 +5,11 @@
       "database": ["mob_kill", "block_place", "block_destroy"],
       "variants": [
         {
-          "id": "4players",
+          "id": "koth_4players",
           "database": ["esezd"]
         },
         {
-          "id": "8players",
+          "id": "koth_8players",
           "database": ["rtgvr"]
         }
       ]

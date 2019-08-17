@@ -61,14 +61,31 @@ class ServerdownloaderController extends AppController {
             return;
         }
         // ok
-        // Return servers.json file
-        $json = file_get_contents(API_DIR.DS."Config".DS."servers.json");
-        $parsedJson = json_decode($json);
-        if (!$parsedJson || json_last_error() != JSON_ERROR_NONE) {
+        /**
+         * @var ServerConfig $serverConfig
+         */
+        $serverConfig = $this->serverConfig;
+        if (!$serverConfig->getParsedJson()) {
             // Json error
-            $this->response->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON);
+            $this->response->error($serverConfig->getErrorType()[0], $serverConfig->getErrorType()[1]);
             exit;
         }
+        if (!$serverConfig->exist($param)) {
+            // Json error
+            $this->response->error(ResponseController::ERROR_NOTFOUND, Error::SERVER_TYPE_NOT_FOUND);
+            exit;
+        }
+        $copyType = $serverConfig->get($type);
+        $id = $copyType['id'];
+        $path = API_DIR.DS."Config".DS."Servers".DS.$id.".zip";
+        if (!file_exists($path)) {
+            $this->response->error($this->response::ERROR_NOTFOUND, Error::SERVER_TYPE_FILE_NOT_FOUND);
+            return;
+        }
+        header('Content-Type: application/octet-stream');
+        header("Content-Transfer-Encoding: Binary");
+        header("Content-disposition: attachment; filename=\"".$id.".zip"."\"");
+        readfile($path);
 
         $this->response->ok([
             "src" => $type,

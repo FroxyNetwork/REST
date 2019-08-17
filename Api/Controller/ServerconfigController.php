@@ -47,7 +47,7 @@ class ServerconfigController extends AppController {
                 $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TYPE_INVALID);
                 return;
             }
-            
+
             $parsedJson = $serverConfig->getParsedJson();
             if (!$parsedJson) {
                 // Json error
@@ -56,7 +56,7 @@ class ServerconfigController extends AppController {
             }
             if (!$serverConfig->exist($param)) {
                 // Json error
-                $this->response->error(ResponseController::ERROR_NOTFOUND, Error::NOT_FOUND);
+                $this->response->error(ResponseController::ERROR_NOTFOUND, Error::SERVER_TYPE_NOT_FOUND);
                 exit;
             }
             $this->response->ok($serverConfig->get($param));

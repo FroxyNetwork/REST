@@ -37,9 +37,7 @@ class ServerConfig {
     private $json;
     private $parsedJson;
     /*
-     * string (id) => [
-     *      int (index), int (index)
-     * ]
+     * string (id) => [int (index), int (second index or -1)]
      */
     private $keys = [];
 
@@ -155,8 +153,6 @@ class ServerConfig {
         if (!$this->exist($name))
             return false;
         $key = $this->keys[$name];
-        if (count($key) == 0)
-            return false;
         if ($key[1] == -1)
             return $this->parsedJson["types"][$key[0]];
         else
