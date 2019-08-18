@@ -59,7 +59,7 @@ class ServerconfigController extends AppController {
                 $this->response->error(ResponseController::ERROR_NOTFOUND, Error::SERVER_TYPE_NOT_FOUND);
                 exit;
             }
-            $this->response->ok($serverConfig->get($param));
+            $this->response->ok(["types" => [$serverConfig->get($param)]]);
         } else {
             // Return servers.json file
             $parsedJson = $serverConfig->getParsedJson();
