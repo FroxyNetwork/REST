@@ -86,11 +86,6 @@ class ServerdownloaderController extends AppController {
         header("Content-Transfer-Encoding: Binary");
         header("Content-disposition: attachment; filename=\"".$id.".zip"."\"");
         readfile($path);
-
-        $this->response->ok([
-            "src" => $type,
-            "result" => $matches[0]
-        ]);
     }
 
     public function implementedMethods() {
