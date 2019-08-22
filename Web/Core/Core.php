@@ -60,11 +60,18 @@ class Core {
     private static $database;
 
     /**
+     * @var array La configuration
+     */
+    private static $config;
+
+    /**
      * @var array Liste des variables à ajouter aux controleurs
      */
     private static $list = [];
 
     public static function init() {
+        // Disable error reporting
+        //error_reporting(0);
         // Fix HTTP_AUTHORIZATION
         $httpAuthorization = null;
         if (isset($_SERVER['HTTP_AUTHORIZATION']))
@@ -90,29 +97,54 @@ class Core {
         // Initialisation des controleurs
         self::$_requestController = new RequestController();
         self::$_responseController = new ResponseController();
-        // TODO Récupérer les paramètres depuis un fichier de config
-        self::$database = new DBController("localhost", 3306, "root", "", "froxynetwork");
+        // Load config file
+        try {
+            self::$config = parse_ini_file(API_DIR.DS."Config".DS."config.ini");
+        } catch (\Exception $ex) {
+            self::$config = false;
+        } finally {
+            if (!self::$config) {
+                // config.ini file error
+                self::$_responseController->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_CONFIG);
+                exit;
+            }
+        }
+        if (!isset(self::$config['mongodb']) || !isset(self::$config['mongodb_database'])) {
+            // config.ini file error
+            self::$_responseController->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_CONFIG_MONGODB);
+            exit;
+        }
+        try {
+            self::$database = new DBController(self::$config['mongodb'], self::$config['mongodb_database']);
+        } catch (\Exception $ex) {
+            self::$_responseController->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_DATABASE);
+            exit;
+        }
         self::$list = array();
         // Including Routage
-        Route::configure("/");
+        Route::configure(isset(self::$config['default_route']) ? self::$config['default_route'] : "/");
         include API_DIR.DS."Config".DS."Routage.php";
         $path = self::$_requestController->getPath();
         $route = Route::getRoute($path);
+        if (is_null($route) || !is_array($route) || sizeof($route) == 0) {
+            self::$_responseController->error(self::$_responseController::ERROR_NOTFOUND, Error::ROUTE_NOT_FOUND);
+            return;
+        }
         $controller = $route['controller'];
         $params = $route['param'];
         /**
          * @var $webController WebController
          */
         $webController = self::getAppController("Web");
-        $webController->onLoad(self::$list, self::$database->get());
+        $webController->onLoad(self::$list, self::$database->getDatabase());
         try {
             $appController = self::getAppController($controller);
+            self::$_responseController->setAppController($appController);
             if ($appController == null) {
                 // Erreur
                 self::$_responseController->error(self::$_responseController::ERROR_NOTFOUND, Error::GLOBAL_CONTROLLER_NOT_FOUND);
                 return;
             }
-
             switch (self::$_requestController->getMethod()) {
                 case "GET":
                     $appController->get($params);
@@ -214,7 +246,7 @@ class Core {
         $file = self::fileName(self::DATASOURCES, $name);
         $class = "\\Api\\Controller\\DatasourceController\\".$file;
         if (self::$database != null)
-            $impl = new $class(self::$database->get());
+            $impl = new $class(self::$database);
         else
             $impl = new $class(null);
         return $impl;

@@ -68,7 +68,7 @@ class PlayerControllerTest extends TestCase {
     private $responseController;
 
     protected function setUp() {
-        $this->dbController = new DBController('localhost', 3306, 'root', '', 'froxynetwork_test');
+        $this->dbController = new DBController('mongodb://127.0.0.1:27017', 'froxynetwork_test');
         Core::setDatabase($this->dbController);
         $this->playerController = Core::getAppController("Player");
         $this->oauth = new OAuthServerUtil();
@@ -79,7 +79,7 @@ class PlayerControllerTest extends TestCase {
         $this->responseController = new ResponseControllerImpl();
         $this->responseController->setEcho(false);
         $this->playerController->response = $this->responseController;
-        DBUtil::clearTables($this->dbController);
+        DBUtil::clearTables($this->dbController, 'froxynetwork_test');
     }
 
     function testPost() {
@@ -157,7 +157,7 @@ class PlayerControllerTest extends TestCase {
         $this->playerController->get("/1ddlyoko");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_NOTFOUND);
         // UUID not found
-        $this->playerController->get("/86173d9f-f7f4-4965-8e9d-f37783bf6fa7");
+        $this->playerController->get("/86173d9f-f7f4-4965-8e9d-f37783bf6fa8");
         self::assertError($this->responseController->getLastData(), ResponseController::ERROR_NOTFOUND);
 
         // Player exist

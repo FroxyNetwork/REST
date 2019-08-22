@@ -31,17 +31,7 @@ use Web\Controller\DBController;
 
 class DBUtil {
 
-    static function clearTables(DBController $dbController) {
-        $sql = "
-            SELECT 
-            CONCAT('TRUNCATE TABLE ',TABLE_NAME,';') AS truncateCommand
-            FROM information_schema.TABLES 
-            WHERE TABLE_SCHEMA = 'froxynetwork_test';
-        ";
-        $prep = $dbController->get()->prepare($sql);
-        $prep->execute();
-        $arr = $prep->fetchAll();
-        foreach ($arr as $value)
-            $dbController->get()->exec($value[0]);
+    static function clearTables(DBController $dbController, $database) {
+        $dbController->getClient()->dropDatabase($database);
     }
 }

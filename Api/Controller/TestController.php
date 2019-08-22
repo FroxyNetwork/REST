@@ -31,10 +31,8 @@ use Web\Controller\AppController;
 
 class TestController extends AppController {
 
-
     public function get($param) {
         $this->response->ok(["METHODE" => "GET", "URL" => $this->request->getURL(true, true)]);
-       // Response::send(["Token" => $this->token->get()]);
     }
 
     public function post($param) {
@@ -47,5 +45,9 @@ class TestController extends AppController {
 
     public function delete($param) {
         $this->response->ok(["METHODE" => "DELETE"]);
+    }
+
+    public function implementedMethods() {
+        return ["GET", "POST", "PUT", "DELETE"];
     }
 }

@@ -27,65 +27,52 @@
 
 namespace Web\Controller;
 
-use PDO;
-use PDOException;
+use MongoDB\Client;
+use MongoDB\Database;
 
 class DBController {
     /**
-     * @var string $host L'hote
+     * @var string $url L'url
      */
-    private $host;
+    private $url;
     /**
-     * @var string $port Le port
-     */
-    private $port;
-    /**
-     * @var string $login Le login
-     */
-    private $login;
-    /**
-     * @var string $password Le mot de passe
-     */
-    private $password;
-    /**
-     * @var string $dbName Le nom de la bdd
+     * @var string $dbName Le nom de la base de données
      */
     private $dbName;
     /**
-     * @var PDO $db L'objet PDO
+     * @var Client $client L'objet Client
+     */
+    private $client;
+    /**
+     * @var Database $db L'objet Database
      */
     private $db;
 
     /**
      * DBController constructor.
      *
-     * @param $host
-     * @param $port
-     * @param $login
-     * @param $password
+     * @param $url
      * @param $dbName
      */
-    function __construct($host, $port, $login, $password, $dbName) {
-        $this->host = $host;
-        $this->port = $port;
-        $this->login = $login;
-        $this->password = $password;
+    function __construct($url, $dbName) {
+        $this->url = $url;
         $this->dbName = $dbName;
+        $this->client = new Client($this->url);
+        $this->db = $this->client->selectDatabase($this->dbName);
+        // Check connection
+        $this->db->listCollections();
     }
 
-    function get() {
-        if (!empty($this->db))
-            return $this->db;
-        try {
-            $strConnection = 'mysql:host='.$this->host.';dbname='.$this->dbName.';port='.$this->port;
-            $this->db = new PDO($strConnection, $this->login, $this->password);
-            $this->db->exec("SET CHARACTER SET utf8");
-            $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch (PDOException $ex) {
-            $msg = 'ERREUR PDO dans ' . $ex->getFile() . ' Ligne : ' . $ex->getLine() . ' : ' . $ex->getMessage();
-            die ($msg);
-        }
+    function getClient() {
+        return $this->client;
+    }
+
+    function getDatabase() {
         return $this->db;
+    }
+
+    function get($collection) {
+        return $this->db->selectCollection($collection);
     }
 
     function close() {

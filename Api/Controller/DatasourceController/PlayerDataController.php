@@ -29,75 +29,71 @@
 
 namespace Api\Controller\DatasourceController;
 
-use Api\Model\PlayerModel;
-use Web\Core\Core;
+use MongoDB\BSON\UTCDateTime;
+use MongoDB\Collection;
+use Web\Controller\DBController;
 
 class PlayerDataController {
-    const ERROR_NOT_FOUND = 1;
-    const ERROR_UNKNOWN = 2;
-    const name = "player";
     /**
-     * @var \PDO $db
+     * @var Collection $db
      */
     private $db;
 
-    public function __construct($db) {
-        $this->db = $db;
+    public function __construct(DBController $db) {
+        $this->db = $db->get("player");
     }
 
     /**
      * @param $uuid string User uuid
-     * @return PlayerModel|bool
+     * @return array|bool
      */
     function getUserByUUID($uuid) {
         try {
-            $sql = "SELECT * FROM ".self::name." WHERE uuid=:uuid";
-            $prep = $this->db->prepare($sql);
-            $prep->bindValue(":uuid", $uuid, \PDO::PARAM_STR);
-            $prep->execute();
-            if ($prep->rowCount() == 0) {
-                $GLOBALS['error'] = "Player Not Found !";
-                $GLOBALS['errorCode'] = self::ERROR_NOT_FOUND;
+            $c = $this->db->findOne(["_id" => $uuid]);
+            if (empty($c) || !$c)
                 return false;
-            }
-            $result = $prep->fetch();
-            return new PlayerModel($result['uuid'], $result['nickname'], $result['display_name'], $result['coins'], $result['level'], $result['exp'], new \DateTime($result['first_login']), new \DateTime($result['last_login']), $result['ip'], $result['lang']);
-        } catch(\Exception $ex) {
-            $GLOBALS['error'] = $ex->getMessage();
-            $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
+            $user = [
+                'uuid' => $c['_id'],
+                'nickname' => $c['nickname'],
+                'display_name' => $c['display_name'],
+                'coins' => $c['coins'],
+                'level' => $c['level'],
+                'exp' => $c['exp'],
+                'first_login' => $c['first_login']->toDateTime(),
+                'last_login' => $c['last_login']->toDateTime(),
+                'ip' => $c['ip'],
+                'lang' => $c['lang']
+            ];
+            return $user;
+        } catch (\Exception $ex) {
             return false;
-        } finally {
-            if (!is_null($prep))
-                $prep->closeCursor();
-            $prep = null;
         }
     }
 
     /**
      * @param $nickname string Player name
-     * @return PlayerModel|bool
+     * @return array|bool
      */
     function getUserByPseudo($nickname) {
         try {
-            $sql = "SELECT * FROM ".self::name." WHERE nickname=:nickname";
-            $prep = $this->db->prepare($sql);
-            $prep->bindValue(":nickname", $nickname, \PDO::PARAM_STR);
-            $prep->execute();
-            if ($prep->rowCount() == 0) {
-                $GLOBALS['error'] = "Player Not Found !";
-                $GLOBALS['errorCode'] = self::ERROR_NOT_FOUND;
+            $c = $this->db->findOne(["nickname" => $nickname]);
+            if (empty($c) || !$c)
                 return false;
-            }
-            $result = $prep->fetch();
-            return new PlayerModel($result['uuid'], $result['nickname'], $result['display_name'], $result['coins'], $result['level'], $result['exp'], new \DateTime($result['first_login']), new \DateTime($result['last_login']), $result['ip'], $result['lang']);
-        } catch(\Exception $ex) {
-            $GLOBALS['error'] = $ex->getMessage();
-            $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
+            $user = [
+                'uuid' => $c['_id'],
+                'nickname' => $c['nickname'],
+                'display_name' => $c['display_name'],
+                'coins' => $c['coins'],
+                'level' => $c['level'],
+                'exp' => $c['exp'],
+                'first_login' => $c['first_login']->toDateTime(),
+                'last_login' => $c['last_login']->toDateTime(),
+                'ip' => $c['ip'],
+                'lang' => $c['lang']
+            ];
+            return $user;
+        } catch (\Exception $ex) {
             return false;
-        } finally {
-            if (!is_null($prep))
-                $prep->closeCursor();
-            $prep = null;
         }
     }
 
@@ -106,75 +102,45 @@ class PlayerDataController {
      * @param $nickname string Le pseudo du joueur
      * @param $ip string L'ip du joueur
      *
-     * @return bool|PlayerModel false si erreur, ou le joueur
+     * @return array|bool false si erreur, ou le joueur
      */
     function createUser($uuid, $nickname, $ip) {
         try {
             $now = new \DateTime();
-            $p = new PlayerModel($uuid, $nickname, $nickname, 0, 1, 0, $now, $now, $ip, "fr_FR");
-            $sql = "INSERT INTO ".self::name." (uuid, nickname, display_name, coins, level, exp, first_login, last_login, ip, lang) VALUES (:uuid, :nickname, :displayname, :coins, :level, :exp, :firstlogin, :lastlogin, :ip, :lang)";
-            $prep = $this->db->prepare($sql);
-            $prep->bindValue(":uuid", $p->getUuid(), \PDO::PARAM_STR);
-            $prep->bindValue(":nickname", $p->getNickname(), \PDO::PARAM_STR);
-            $prep->bindValue(":displayname", $p->getDisplayName(), \PDO::PARAM_STR);
-            $prep->bindValue(":coins", $p->getCoins(), \PDO::PARAM_INT);
-            $prep->bindValue(":level", $p->getLevel(), \PDO::PARAM_INT);
-            $prep->bindValue(":exp", $p->getExp(), \PDO::PARAM_INT);
-            $prep->bindValue(":firstlogin", Core::formatDate($p->getFirstLogin()), \PDO::PARAM_STR);
-            $prep->bindValue(":lastlogin", Core::formatDate($p->getLastLogin()), \PDO::PARAM_STR);
-            $prep->bindValue(":ip", $p->getIp(), \PDO::PARAM_STR);
-            $prep->bindValue(":lang", $p->getLang(), \PDO::PARAM_STR);
-            $prep->execute();
-            if ($prep->rowCount() != 1) {
-                $GLOBALS['error'] = "An error has occured while creating a player !";
-                $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
+            $user = [
+                'uuid' => strtolower($uuid),
+                'nickname' => strtolower($nickname),
+                'display_name' => strtolower($nickname),
+                'coins' => 0,
+                'level' => 0,
+                'exp' => 0,
+                'first_login' => $now,
+                'last_login' => $now,
+                'ip' => $ip,
+                'lang' => 'fr_FR'
+            ];
+            $c = $this->db->insertOne(['_id' => $user['uuid'], 'nickname' => $user['nickname'], 'display_name' => $user['display_name'], 'coins' => $user['coins'], 'level' => $user['level'], 'exp' => $user['exp'], 'first_login' => new UTCDateTime($user['first_login']->getTimestamp() * 1000), 'last_login' => new UTCDateTime($user['last_login']->getTimestamp() * 1000), 'ip' => $user['ip'], 'lang' => $user['lang']]);
+            if ($c->getInsertedCount() != 1)
                 return false;
-            }
-            return $p;
+            return $user;
         } catch (\Exception $ex) {
-            $GLOBALS['error'] = $ex->getMessage();
-            $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
             return false;
-        } finally {
-            if (!is_null($prep))
-                $prep->closeCursor();
-            $prep = null;
         }
     }
 
     /**
-     * @param $p PlayerModel Le joueur
+     * @param $p array Le joueur
      *
-     * @return bool|PlayerModel false si erreur, ou le joueur
+     * @return array|bool false si erreur, ou le joueur
      */
     function updateUser($p) {
         try {
-            $sql = "UPDATE ".self::name." SET nickname=:nickname, display_name=:displayname, coins=:coins, level=:level, exp=:exp, last_login=:lastlogin, ip=:ip, lang=:lang WHERE uuid=:uuid";
-            $prep = $this->db->prepare($sql);
-            $prep->bindValue(":nickname", $p->getNickname(), \PDO::PARAM_STR);
-            $prep->bindValue(":displayname", $p->getDisplayName(), \PDO::PARAM_STR);
-            $prep->bindValue(":coins", $p->getCoins(), \PDO::PARAM_INT);
-            $prep->bindValue(":level", $p->getLevel(), \PDO::PARAM_INT);
-            $prep->bindValue(":exp", $p->getExp(), \PDO::PARAM_INT);
-            $prep->bindValue(":lastlogin", Core::formatDate($p->getLastLogin()), \PDO::PARAM_STR);
-            $prep->bindValue(":ip", $p->getIp(), \PDO::PARAM_STR);
-            $prep->bindValue(":lang", $p->getLang(), \PDO::PARAM_STR);
-            $prep->bindValue(":uuid", $p->getUuid(), \PDO::PARAM_STR);
-            $prep->execute();
-            if ($prep->rowCount() != 1) {
-                $GLOBALS['error'] = "An error has occured while updating a player !";
-                $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
+            $c = $this->db->updateOne(["_id" => $p['uuid']], ['$set' => ['nickname' => $p['nickname'], 'display_name' => $p['display_name'], 'coins' => $p['coins'], 'level' => $p['level'], 'exp' => $p['exp'], 'last_login' => new UTCDateTime($p['last_login']->getTimestamp() * 1000), 'ip' => $p['ip'], 'lang' => $p['lang']]]);
+            if ($c->getModifiedCount() != 1)
                 return false;
-            }
             return $p;
         } catch (\Exception $ex) {
-            $GLOBALS['error'] = $ex->getMessage();
-            $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
             return false;
-        } finally {
-            if (!is_null($prep))
-                $prep->closeCursor();
-            $prep = null;
         }
     }
 }

@@ -62,12 +62,17 @@ abstract class AppController {
         $this->response->notImplemented();
     }
 
-    public function options($param) {
-        $this->response->notImplemented();
+    public final function options($param) {
+        $this->response->void();
     }
 
     // Autre chose
     public function other($param) {
         $this->response->notImplemented();
     }
+
+    /**
+     * @return array A list of implemented methods
+     */
+    public abstract function implementedMethods();
 }

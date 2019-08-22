@@ -56,7 +56,7 @@ class PlayerController extends AppController {
         if (Core::startsWith($param, "/"))
             $param = substr($param, 1);
         $ln = strlen($param);
-        $player = null;
+        $player = false;
         if ($ln == 36) {
             // UUID
             $player = $this->playerDataController->getUserByUUID($param);
@@ -67,37 +67,28 @@ class PlayerController extends AppController {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_DATA_LENGTH);
             return;
         }
-        if (!empty($GLOBALS['errorCode'])) {
-            if ($GLOBALS['errorCode'] == PlayerDataController::ERROR_NOT_FOUND) {
-                // Player not found
-                $this->response->error($this->response::ERROR_NOTFOUND, Error::PLAYER_NOT_FOUND);
-                return;
-            }
-            // Error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_ERROR, ["errorCode" => $GLOBALS['errorCode'], "error" => $GLOBALS['error']]);
-            return;
-        } else if ($player == null) {
-            // Unknown error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_UNKNOWN);
+        if (!$player) {
+            // Player not found
+            $this->response->error($this->response::ERROR_NOTFOUND, Error::PLAYER_NOT_FOUND);
             return;
         }
         $displayName = "<HIDDEN>";
         if ($oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::PLAYER_SHOW_REALNAME))
-            $displayName = $player->getDisplayName();
+            $displayName = $player['display_name'];
         $ip = "<HIDDEN>";
         if ($oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::PLAYER_SHOW_IP))
-            $ip = $player->getIp();
+            $ip = $player['ip'];
         $this->response->ok([
-            "uuid" => $player->getUuid(),
-            "nickname" => $player->getNickname(),
+            "uuid" => $player['uuid'],
+            "nickname" => $player['nickname'],
             "displayName" => $displayName,
-            "coins" => $player->getCoins(),
-            "level" => $player->getLevel(),
-            "exp" => $player->getExp(),
-            "firstLogin" => Core::formatDate($player->getFirstLogin()),
-            "lastLogin" => Core::formatDate($player->getLastLogin()),
+            "coins" => $player['coins'],
+            "level" => $player['level'],
+            "exp" => $player['exp'],
+            "firstLogin" => Core::formatDate($player['first_login']),
+            "lastLogin" => Core::formatDate($player['last_login']),
             "ip" => $ip,
-            "lang" => $player->getLang()
+            "lang" => $player['lang']
         ]);
     }
 
@@ -108,7 +99,7 @@ class PlayerController extends AppController {
         "nickname" => "0ddlyoko",
         "ip" => "127.0.0.1"
      * }
-     * Pas plus, les données par défauts vont être gérés par la bdd
+     * Pas plus, les données par défauts vont être gérées par la bdd
      * @param $param
      */
     public function post($param) {
@@ -167,26 +158,22 @@ class PlayerController extends AppController {
         unset($GLOBALS['error']);
         unset($GLOBALS['errorCode']);
         $p = $this->playerDataController->createUser($uuid, $nickname, $ip);
-        if (!empty($GLOBALS['errorCode'])) {
-            // Error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_ERROR, ["errorCode" => $GLOBALS['errorCode'], "error" => $GLOBALS['error']]);
-            return;
-        } else if ($p == null) {
+        if (!$p) {
             // Unknown error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_UNKNOWN);
+            $this->response->error($this->response::SERVER_INTERNAL, Error::GLOBAL_UNKNOWN_ERROR);
             return;
         }
         $this->response->ok([
-            "uuid" => $p->getUuid(),
-            "nickname" => $p->getNickname(),
-            "displayName" => $p->getDisplayName(),
-            "coins" => $p->getCoins(),
-            "level" => $p->getLevel(),
-            "exp" => $p->getExp(),
-            "firstLogin" => Core::formatDate($p->getFirstLogin()),
-            "lastLogin" => Core::formatDate($p->getLastLogin()),
-            "ip" => $p->getIp(),
-            "lang" => $p->getLang()
+            "uuid" => $p['uuid'],
+            "nickname" => $p['nickname'],
+            "displayName" => $p['display_name'],
+            "coins" => $p['coins'],
+            "level" => $p['level'],
+            "exp" => $p['exp'],
+            "firstLogin" => Core::formatDate($p['first_login']),
+            "lastLogin" => Core::formatDate($p['last_login']),
+            "ip" => $p['ip'],
+            "lang" => $p['lang']
         ], $this->response::SUCCESS_CREATED);
         return;
     }
@@ -287,42 +274,41 @@ class PlayerController extends AppController {
             return;
         }
         // On teste si lastLogin est bien égal ou plus petit que le lastLogin sauvegardé
-        if ($lastLogin <= $p->getLastLogin()) {
+        if ($lastLogin <= $p['last_login']) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_LASTLOGIN_GREATER);
             return;
         }
         // Tout est bon, on update les valeurs
-        $p->setNickname($nickname);
-        $p->setDisplayName($displayName);
-        $p->setCoins($coins);
-        $p->setLevel($level);
-        $p->setExp($exp);
-        $p->setLastLogin($lastLogin);
-        $p->setIp($ip);
-        $p->setLevel($level);
-        $p->setLang($lang);
+        $p['nickname'] = $nickname;
+        $p['display_name'] = $displayName;
+        $p['coins'] = $coins;
+        $p['level'] = $level;
+        $p['exp'] = $exp;
+        $p['last_login'] = $lastLogin;
+        $p['ip'] = $ip;
+        $p['lang'] = $lang;
         $p2 = $this->playerDataController->updateUser($p);
-        if (!empty($GLOBALS['errorCode'])) {
-            // Error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_ERROR, ["errorCode" => $GLOBALS['errorCode'], "error" => $GLOBALS['error']]);
-            return;
-        } else if ($p2 == null) {
+        if ($p2 == null) {
             // Unknown error
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_UNKNOWN);
+            $this->response->error($this->response::SERVER_INTERNAL, Error::GLOBAL_UNKNOWN_ERROR);
             return;
         }
         $this->response->ok([
-            "uuid" => $p2->getUuid(),
-            "nickname" => $p2->getNickname(),
-            "displayName" => $p2->getDisplayName(),
-            "coins" => $p2->getCoins(),
-            "level" => $p2->getLevel(),
-            "exp" => $p2->getExp(),
-            "firstLogin" => Core::formatDate($p2->getFirstLogin()),
-            "lastLogin" => Core::formatDate($p2->getLastLogin()),
-            "ip" => $p2->getIp(),
-            "lang" => $p2->getLang()
+            "uuid" => $p2['uuid'],
+            "nickname" => $p2['nickname'],
+            "displayName" => $p2['display_name'],
+            "coins" => $p2['coins'],
+            "level" => $p2['level'],
+            "exp" => $p2['exp'],
+            "firstLogin" => Core::formatDate($p2['first_login']),
+            "lastLogin" => Core::formatDate($p2['last_login']),
+            "ip" => $p2['ip'],
+            "lang" => $p2['lang']
         ], $this->response::SUCCESS_OK);
         return;
+    }
+
+    public function implementedMethods() {
+        return ["GET", "POST", "PUT"];
     }
 }

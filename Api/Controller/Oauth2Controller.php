@@ -45,4 +45,8 @@ class OAuth2Controller extends AppController {
         $oauth = $this->oauth;
         $oauth->handleTokenRequest(Request::createFromGlobals())->send();
     }
+
+    public function implementedMethods() {
+        return ["POST"];
+    }
 }

@@ -93,6 +93,7 @@ CREATE TABLE `player` (
 CREATE TABLE `server` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `name` varchar(16) NOT NULL,
+    `type` varchar(16) NOT NULL,
     `port` int(11) NOT NULL,
     `status` varchar(16) NOT NULL,
     `creation_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,

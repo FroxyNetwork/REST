@@ -82,7 +82,7 @@ class RequestController {
         else
             $this->port = 80;
         // Chemin
-        $urlpath = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
+        $urlpath = parse_url(iconv('utf-8','ASCII//IGNORE//TRANSLIT', $_SERVER["REQUEST_URI"]), PHP_URL_PATH);
         $path = dirname($urlpath);
         if ($path == "\\")
             $path = "/";

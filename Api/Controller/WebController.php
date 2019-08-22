@@ -28,15 +28,18 @@
 namespace Api\Controller;
 
 use Api\Controller\DatasourceController\OAuth2DataController;
+use MongoDB\Database;
 use OAuth2\GrantType\ClientCredentials;
 use OAuth2\GrantType\RefreshToken;
 use OAuth2\Server;
-use OAuth2\Storage\Pdo;
 use Web\Controller\AppController;
 use Web\Core\Core;
 
 class WebController extends AppController {
-    private $pdo;
+    /**
+     * @var Database $db
+     */
+    private $db;
 
     /**
      * Méthode appelée quand l'app charge
@@ -48,19 +51,20 @@ class WebController extends AppController {
      * Donc, pour tout les controleurs, il y aura une variable $user avec comme valeur user
      *
      * @param array $list Une liste de variables à ajouter aux controleurs
-     * @param \PDO $pdo La connexion bdd
+     * @param Database $db La connexion bdd
      */
-    function onLoad(array &$list, \PDO $pdo) {
-        $this->pdo = $pdo;
+    function onLoad(array &$list, Database $db) {
+        $this->db = $db;
         // OAuth2
         $this->loadOAuth2($list);
         $this->loadToken($list);
+        $this->loadServerConfig($list);
     }
 
     function loadOAuth2(array &$list) {
         // TODO Sauvegarder sur une autre bdd (Ou via un autre utilisateur / une autre connexion)
         //$storage = new Pdo($this->pdo);
-        $storage = new OAuth2DataController($this->pdo);
+        $storage = new OAuth2DataController($this->db);
         $server = new Server($storage);
         $server->addGrantType(new ClientCredentials($storage));
         $server->addGrantType(new RefreshToken($storage));
@@ -77,10 +81,19 @@ class WebController extends AppController {
         $list['token'] = $tokenController;
     }
 
+    function loadServerConfig(array &$list) {
+        $serverConfig = new ServerConfig();
+        $list['serverConfig'] = $serverConfig;
+    }
+
     /**
      * Méthode appelée quand l'app décharge
      */
     function onUnload() {
 
+    }
+
+    public function implementedMethods() {
+        return [];
     }
 }

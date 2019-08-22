@@ -47,6 +47,10 @@ class TokenController extends AppController {
         return $_SESSION['token'];
     }
 
+    public function implementedMethods() {
+        return ["GET"];
+    }
+
     /**
      * @return bool Vérifie si le token existe et est correct
      */

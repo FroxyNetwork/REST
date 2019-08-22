@@ -27,147 +27,121 @@
 
 namespace Api\Controller\DatasourceController;
 
-use Api\Model\ServerModel;
 use Api\Model\ServerStatus;
-use Web\Core\Core;
+use MongoDB\BSON\ObjectId;
+use MongoDB\BSON\UTCDateTime;
+use MongoDB\Collection;
+use Web\Controller\DBController;
 
 class ServerDataController {
-    const ERROR_NOT_FOUND = 1;
-    const ERROR_UNKNOWN = 2;
-    const name = "server";
     /**
-     * @var \PDO $db
+     * @var Collection $db
      */
     private $db;
 
-    public function __construct($db) {
-        $this->db = $db;
+    public function __construct(DBController $db) {
+        $this->db = $db->get("server");
     }
 
     /**
      * @param $id int L'id du serveur
-     * @return ServerModel|bool
+     * @return array|bool
      */
     function getServer($id) {
         try {
-            $sql = "SELECT * FROM ".self::name." WHERE id=:id";
-            $prep = $this->db->prepare($sql);
-            $prep->bindValue(":id", $id, \PDO::PARAM_INT);
-            $prep->execute();
-            if ($prep->rowCount() == 0) {
-                $GLOBALS['error'] = "Server Not Found !";
-                $GLOBALS['errorCode'] = self::ERROR_NOT_FOUND;
+            $c = $this->db->findOne(["_id" => new ObjectId($id)]);
+            if (empty($c) || !$c)
                 return false;
-            }
-            $result = $prep->fetch();
-            return new ServerModel($result['id'], $result['name'], $result['port'], $result['status'], new \DateTime($result['creation_time']), (isset($result['end_time']) && !is_null($result['end_time'])) ? new \DateTime($result['end_time']) : null);
+            $server = [
+                'id' => (string) $c['_id'],
+                'name' => $c['name'],
+                'type' => $c['type'],
+                'port' => $c['port'],
+                'status' => $c['status'],
+                'creation_time' => $c['creation_time']->toDateTime(),
+                'end_time' => (!isset($v['end_time']) || is_null($c['end_time'])) ? null : $c['end_time']->toDateTime(),
+            ];
+            return $server;
         } catch(\Exception $ex) {
-            $GLOBALS['error'] = $ex->getMessage();
-            $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
             return false;
-        } finally {
-            if (!is_null($prep))
-                $prep->closeCursor();
-            $prep = null;
         }
     }
 
     /**
      * Retourne tout les serveurs ouverts
-     * Un serveur est ouvert si son status est:
+     * Un serveur est ouvert si son statut est:
      * - STARTING
      * - WAITING
      * - STARTED
      * - ENDING
-     * @return ServerModel[]
+     * @return array[]
      */
     function getOpenedServers() {
         try {
-            $sql = "SELECT * FROM ".self::name." WHERE status=:st1 OR status=:st2 OR status=:st3 OR status=:st4";
-            $prep = $this->db->prepare($sql);
-            $prep->bindValue(":st1", ServerStatus::STARTING, \PDO::PARAM_STR);
-            $prep->bindValue(":st2", ServerStatus::WAITING, \PDO::PARAM_STR);
-            $prep->bindValue(":st3", ServerStatus::STARTED, \PDO::PARAM_STR);
-            $prep->bindValue(":st4", ServerStatus::ENDING, \PDO::PARAM_STR);
-            $prep->execute();
-            $arr = $prep->fetchAll();
-            $result = [];
-            foreach ($arr as $value)
-                $result[] = new ServerModel($value['id'], $value['name'], $value['port'], $value['status'], new \DateTime($value['creation_time']), (isset($result['end_time']) && !is_null($result['end_time'])) ? new \DateTime($result['end_time']) : null);
-            return $result;
+            $c = $this->db->find(["status" => ['$in' => ['STARTING', 'WAITING', 'STARTED', 'ENDING']]]);
+            if (empty($c) || $c == null)
+                return [];
+            $s = $c->toArray();
+            if ($s == null || !$s || !is_array($s))
+                return [];
+            $servers = [];
+            foreach ($s as $v) {
+                $servers[] = [
+                    'id' => (string) $v['_id'],
+                    'name' => $v['name'],
+                    'type' => $v['type'],
+                    'port' => $v['port'],
+                    'status' => $v['status'],
+                    'creation_time' => $v['creation_time']->toDateTime(),
+                    'end_time' => (!isset($v['end_time']) || is_null($v['end_time'])) ? null : $v['end_time']->toDateTime(),
+                ];
+            }
+            return $servers;
         } catch(\Exception $ex) {
-            $GLOBALS['error'] = $ex->getMessage();
-            $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
             return [];
-        } finally {
-            if (!is_null($prep))
-                $prep->closeCursor();
-            $prep = null;
         }
     }
 
     /**
      * @param $name string Le nom du serveur
+     * @param $type string Le type du serveur
      * @param $port int Le port du serveur
      *
-     * @return bool|ServerModel false si erreur, ou le serveur
+     * @return array|bool false si erreur, ou le serveur
      */
-    function createServer($name, $port) {
+    function createServer($name, $type, $port) {
         try {
             $now = new \DateTime();
-            // TODO Scope
-            $s = new ServerModel(0, $name, $port, ServerStatus::STARTING, $now, null);
-            $sql = "INSERT INTO ".self::name." (name, port, status, creation_time) VALUES (:name, :port, :status, :creation_time)";
-            $prep = $this->db->prepare($sql);
-            $prep->bindValue(":name", $s->getName(), \PDO::PARAM_STR);
-            $prep->bindValue(":port", $s->getPort(), \PDO::PARAM_INT);
-            $prep->bindValue(":status", $s->getStatus(), \PDO::PARAM_STR);
-            $prep->bindValue(":creation_time", Core::formatDate($s->getCreationTime()), \PDO::PARAM_STR);
-            $prep->execute();
-            if ($prep->rowCount() != 1) {
-                $GLOBALS['error'] = "An error has occured while creating a server !";
-                $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
+            $server = [
+                'name' => $name,
+                'type' => $type,
+                'port' => $port,
+                'status' => ServerStatus::STARTING,
+                'creation_time' => $now
+            ];
+            $c = $this->db->insertOne(['name' => $server['name'], 'type' => $server['type'], 'port' => $server['port'], 'status' => $server['status'], 'creation_time' => new UTCDateTime($server['creation_time']->getTimestamp() * 1000)]);
+            if ($c->getInsertedCount() != 1)
                 return false;
-            }
-            $s->setId($this->db->lastInsertId());
-            return $s;
+            $server['id'] = (string) $c->getInsertedId();
+            return $server;
         } catch (\Exception $ex) {
-            $GLOBALS['error'] = $ex->getMessage();
-            $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
             return false;
-        } finally {
-            if (!is_null($prep))
-                $prep->closeCursor();
-            $prep = null;
         }
     }
 
     /**
-     * @param $s ServerModel Le server
+     * @param $s array Le server
      *
-     * @return bool|ServerModel false si erreur, ou le serveur
+     * @return array|bool false si erreur, ou le serveur
      */
     function updateServer($s) {
         try {
-            $sql = "UPDATE ".self::name." SET status=:status WHERE id=:id";
-            $prep = $this->db->prepare($sql);
-            $prep->bindValue(":status", $s->getStatus(), \PDO::PARAM_STR);
-            $prep->bindValue(":id", $s->getId(), \PDO::PARAM_INT);
-            $prep->execute();
-            if ($prep->rowCount() != 1) {
-                $GLOBALS['error'] = "An error has occured while updating a server !";
-                $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
+            $c = $this->db->updateOne(['_id' => new ObjectId($s['id'])], ['$set' => ['status' => $s['status']]]);
+            if ($c->getModifiedCount() != 1)
                 return false;
-            }
             return $s;
         } catch (\Exception $ex) {
-            $GLOBALS['error'] = $ex->getMessage();
-            $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
             return false;
-        } finally {
-            if (!is_null($prep))
-                $prep->closeCursor();
-            $prep = null;
         }
     }
 
@@ -178,26 +152,11 @@ class ServerDataController {
      */
     function closeServer($id) {
         try {
-            $sql = "UPDATE ".self::name." SET status=:status, end_time=:end_time WHERE id=:id";
-            $prep = $this->db->prepare($sql);
-            $prep->bindValue(":status", ServerStatus::ENDED, \PDO::PARAM_STR);
-            $prep->bindValue(":id", $id, \PDO::PARAM_INT);
-            $prep->bindValue(":end_time", Core::formatDate(new \DateTime()), \PDO::PARAM_STR);
-            $prep->execute();
-            if ($prep->rowCount() != 1) {
-                $GLOBALS['error'] = "An error has occured while closing a server !";
-                $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
-                return false;
-            }
-            return true;
+            $now = new \DateTime();
+            $c = $this->db->updateOne(['_id' => new ObjectId($id)], ['$set' => ['status' => ServerStatus::ENDED, 'end_time' => new UTCDateTime($now->getTimestamp() * 1000)]]);
+            return $c->getModifiedCount() == 1;
         } catch (\Exception $ex) {
-            $GLOBALS['error'] = $ex->getMessage();
-            $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
             return false;
-        } finally {
-            if (!is_null($prep))
-                $prep->closeCursor();
-            $prep = null;
         }
     }
 
@@ -208,24 +167,10 @@ class ServerDataController {
      */
     function deleteServer($id) {
         try {
-            $sql = "DELETE FROM ".self::name." WHERE id=:id";
-            $prep = $this->db->prepare($sql);
-            $prep->bindValue(":id", $id, \PDO::PARAM_INT);
-            $prep->execute();
-            if ($prep->rowCount() != 1) {
-                $GLOBALS['error'] = "An error has occured while deleting a server !";
-                $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
-                return false;
-            }
-            return true;
+            $c = $this->db->deleteOne(['_id' => new ObjectId($id)]);
+            return $c->getDeletedCount() == 1;
         } catch (\Exception $ex) {
-            $GLOBALS['error'] = $ex->getMessage();
-            $GLOBALS['errorCode'] = self::ERROR_UNKNOWN;
             return false;
-        } finally {
-            if (!is_null($prep))
-                $prep->closeCursor();
-            $prep = null;
         }
     }
 }

@@ -73,10 +73,10 @@ class ResponseTest extends TestCase {
         self::assertEquals([
             "error" => true,
             "code" => 200,
-            "error_id" => Error::GLOBAL_UNKNOWN[0],
-            "error_message" => Error::GLOBAL_UNKNOWN[1],
+            "error_id" => Error::GLOBAL_UNKNOWN_ERROR[0],
+            "error_message" => Error::GLOBAL_UNKNOWN_ERROR[1],
             "data" => []
-        ], $this->responseController::_create([], 200, Error::GLOBAL_UNKNOWN));
+        ], $this->responseController::_create([], 200, Error::GLOBAL_UNKNOWN_ERROR));
         self::assertEquals([
             "error" => false,
             "code" => 200,

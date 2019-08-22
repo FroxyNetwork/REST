@@ -40,6 +40,10 @@ class ServerModel {
      */
     private $name;
     /**
+     * @var string $type The name of the server
+     */
+    private $type;
+    /**
      * @var int $port The port of the server
      */
     private $port;
@@ -60,14 +64,16 @@ class ServerModel {
      * ServerModel constructor.
      * @param int $id
      * @param string $name
+     * @param string $type
      * @param int $port
      * @param \DateTime $creationTime
      * @param \DateTime|null $endTime
      * @param string $status
      */
-    public function __construct(int $id, string $name, int $port, string $status, \DateTime $creationTime, \DateTime $endTime = null) {
+    public function __construct(int $id, string $name, string $type, int $port, string $status, \DateTime $creationTime, \DateTime $endTime = null) {
         $this->id = $id;
         $this->name = $name;
+        $this->type = $type;
         $this->port = $port;
         $this->status = $status;
         $this->creationTime = $creationTime;
@@ -93,6 +99,13 @@ class ServerModel {
      */
     public function getName(): string {
         return $this->name;
+    }
+
+    /**
+     * @return string The type of the server
+     */
+    public function getType(): string {
+        return $this->type;
     }
 
     /**

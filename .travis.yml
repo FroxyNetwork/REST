@@ -3,12 +3,10 @@ php:
  - '7.1.9'
 
 services:
- - mysql
+ - mongodb
 
 before_install:
- - mysql -e 'DROP DATABASE IF EXISTS froxynetwork_test;'
- - mysql -e 'CREATE DATABASE froxynetwork_test;'
- - mysql -u root --default-character-set=utf8 froxynetwork_test < Tests/travis.sql
+ - pecl install mongodb
 
 before_script:
  - composer install --prefer-source --no-interaction
