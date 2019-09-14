@@ -34,4 +34,5 @@ interface Scope {
     const PLAYER_SHOW_REALNAME = "player_show_realname";
     const PLAYER_SHOW_IP = "player_show_ip";
     const SERVER_DOWNLOAD = "server_download";
+    const WEBSOCKET_SERVER_CHECK = "websocket_check_token";
 }
