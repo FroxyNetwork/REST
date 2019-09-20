@@ -30,7 +30,6 @@ namespace Api\Controller;
 use Api\Controller\DatasourceController\OAuth2DataController;
 use Api\Controller\DatasourceController\ServerDataController;
 use Api\Model\Scope;
-use MongoDB\BSON\ObjectId;
 use OAuth2\Request;
 use OAuth2\Server;
 use Web\Controller\AppController;
@@ -50,8 +49,9 @@ class ServertesterController extends AppController {
     }
 
     /**
-     * $param = CLIENT_KOTH_123...
-     * token = abc...
+     * $param = a2b... (The ObjectId)
+     * $_GET['client_id'] = CLIENT_KOTH_123... (The client_id)
+     * $_GET['token'] = abc... (The token)
      */
     public function get($param) {
         /**
@@ -68,24 +68,36 @@ class ServertesterController extends AppController {
             $param = substr($param, 1);
         $ln = strlen($param);
         if ($ln <= 0) {
-            $this->response->error($this->response::ERROR_NOTFOUND, Error::SERVER_TESTER_ID_NOT_FOUND);
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_INVALID);
             return;
         }
         $id = $param;
 
-        $explode = explode("_", $id);
-        // Doesn't start with "CLIENT" and doesn't have at least 2 underscores
-        if (count($explode) < 2 || $explode[0] != "CLIENT") {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_ID_INVALID);
+        // Invalid ObjectId
+        if (!ctype_xdigit($id)) {
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_INVALID);
             return;
         }
+
+        // Invalid client_id
+        if (!isset($_GET['client_id']) || empty($_GET['client_id'])) {
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_INVALID);
+            return;
+        }
+        $explode = explode("_", $_GET['client_id']);
+        // Doesn't start with "CLIENT" and doesn't have at least 2 underscores
+        if (count($explode) < 2 || $explode[0] != "CLIENT") {
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_INVALID);
+            return;
+        }
+
         // Invalid token
         if (!isset($_GET['token']) || empty($_GET['token'])) {
-            $this->response->error($this->response::ERROR_NOTFOUND, Error::SERVER_TESTER_TOKEN_NOT_FOUND);
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_INVALID);
             return;
         }
         if (!ctype_xdigit($_GET['token'])) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_TOKEN_INVALID);
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_INVALID);
             return;
         }
         // Search server
@@ -95,18 +107,23 @@ class ServertesterController extends AppController {
         $oauth_storage = $this->oauth_storage;
         $client = $oauth_storage->getAccessToken($_GET['token']);
         if (!$client) {
-            $this->response->error($this->response::ERROR_NOTFOUND, Error::SERVER_TESTER_NOT_FOUND);
+            $this->response->error($this->response::ERROR_NOTFOUND, Error::SERVER_TESTER_INVALID);
             return;
         }
-        // Not same token
-        if ($client['client_id'] != $id) {
-            $this->response->error($this->response::ERROR_UNAUTHORIZED, Error::SERVER_TESTER_NOT_SAME_TOKEN);
+        // Not same object_id
+        if ($client['user_id']->__toString() != $id) {
+            $this->response->error($this->response::ERROR_UNAUTHORIZED, Error::SERVER_TESTER_INVALID);
+            return;
+        }
+        // Not same client_id
+        if ($client['client_id'] != $_GET['client_id']) {
+            $this->response->error($this->response::ERROR_UNAUTHORIZED, Error::SERVER_TESTER_INVALID);
             return;
         }
         // Is expired ?
         $expireTime = $client['expires'];
         if (time() > $expireTime) {
-            $this->response->error($this->response::ERROR_UNAUTHORIZED, Error::SERVER_TESTER_TOKEN_INVALID);
+            $this->response->error($this->response::ERROR_UNAUTHORIZED, Error::SERVER_TESTER_INVALID);
             return;
         }
 

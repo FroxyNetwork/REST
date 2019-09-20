@@ -64,12 +64,7 @@ interface Error {
     const SERVER_ACTUALLY_ENDED = [208, "This server is already ended !"];
     const SERVER_TYPE_INVALID = [209, "Type must be a string !"];
     const SERVER_TYPE_LENGTH = [210, "Type length must be between 1 and 16 !"];
-    const SERVER_TESTER_ID_NOT_FOUND = [211, "Id not found"];
-    const SERVER_TESTER_ID_INVALID = [212, "Invalid id"];
-    const SERVER_TESTER_TOKEN_NOT_FOUND = [213, "Token not found"];
-    const SERVER_TESTER_TOKEN_INVALID = [214, "Invalid token"];
-    const SERVER_TESTER_NOT_FOUND = [215, "Server not found"];
-    const SERVER_TESTER_NOT_SAME_TOKEN = [216, "Not same token"];
+    const SERVER_TESTER_INVALID = [211, "Invalid id / token / client_id"];
 
 
     const INTERNAL_SERVER_JSON = [1000, "Internal Server Error: servers.json is not a valid json file !"];
