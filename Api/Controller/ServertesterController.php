@@ -74,7 +74,7 @@ class ServertesterController extends AppController {
         $id = $param;
 
         // Invalid ObjectId
-        if (!ctype_xdigit($id)) {
+        if (!ctype_xdigit($id) && $id != "bungeecord") {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_INVALID);
             return;
         }
@@ -85,8 +85,14 @@ class ServertesterController extends AppController {
             return;
         }
         $explode = explode("_", $_GET['client_id']);
-        // Doesn't start with "CLIENT" and doesn't have at least 2 underscores
-        if (count($explode) < 2 || $explode[0] != "CLIENT") {
+        // Doesn't start with "CLIENT" and doesn't have at least 2 underscores or doesn't start with "BUNGEE"
+        if (count($explode) < 2) {
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_INVALID);
+            return;
+        } else if ($id == "bungeecord" && $explode[0] != "BUNGEE") {
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_INVALID);
+            return;
+        } else if ($id != "bungeecord" && $explode[0] != "CLIENT") {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_INVALID);
             return;
         }
@@ -111,7 +117,7 @@ class ServertesterController extends AppController {
             return;
         }
         // Not same object_id
-        if ($client['user_id']->__toString() != $id) {
+        if ($id != "bungeecord" && $client['user_id']->__toString() != $id) {
             $this->response->error($this->response::ERROR_UNAUTHORIZED, Error::SERVER_TESTER_INVALID);
             return;
         }

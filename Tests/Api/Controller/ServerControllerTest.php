@@ -29,6 +29,7 @@ namespace Tests\Api\Controller;
 
 use Api\Controller\DatasourceController\OAuth2DataController;
 use Api\Controller\ServerController;
+use OAuth2\Request;
 use PHPUnit\Framework\TestCase;
 use Tests\Util\DBUtil;
 use Tests\Util\InputStreamImpl;
@@ -149,6 +150,21 @@ class ServerControllerTest extends TestCase {
         $this->inputStreamUtil->setText('{"name":"koth_1", "type":"KOTH", "port":20001}');
         $this->serverController->post("/");
         self::assertFalse($this->responseController->getLastData()['error']);
+        // Check if all is ok
+        $r = $this->responseController->getLastData()['data'];
+        self::assertEquals("koth_1", $r['name']);
+        self::assertEquals("KOTH", $r['type']);
+        self::assertEquals(20001, $r['port']);
+        self::assertEquals("STARTING", $r['status']);
+        self::assertNotNull($r['auth']);
+        self::assertNotNull($r['auth']['client_id']);
+        self::assertNotEmpty($r['auth']['client_id']);
+        self::assertNotNull($r['auth']['client_secret']);
+        self::assertNotEmpty($r['auth']['client_secret']);
+        // Check if authentication is ok
+        $clientId = $r['auth']['client_id'];
+        $clientSecret = $r['auth']['client_secret'];
+        self::assertTrue($this->oauthStorage->checkClientCredentials($clientId, $clientSecret));
 
         // No permission
         $this->oauth->setBool(false);
