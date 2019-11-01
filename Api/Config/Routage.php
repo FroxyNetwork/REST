@@ -32,6 +32,5 @@ Route::connect("/", "Test");
 Route::connect("/player", "Player");
 Route::connect("/server", "Server");
 Route::connect("/server/config", "ServerConfig");
-Route::connect("/server/download", "ServerDownloader");
 Route::connect("/server/tester", "ServerTester");
 Route::connect("/oauth2", "OAuth2");
