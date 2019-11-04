@@ -68,6 +68,43 @@ class ServerDataController {
     }
 
     /**
+     * Vérifie si l'id du docker est déjà sauvegardé
+     *
+     * @param $id string L'id du serveur
+     * @return true si l'id du docker est déjà sauvegardé
+     */
+    function checkServerDocker($id) {
+        try {
+            $c = $this->db->findOne(['_id' => new ObjectId($id)]);
+            if (empty($c) || !$c)
+                return false;
+            return (array_key_exists('docker', $c) && array_key_exists('server', $c['docker']) && array_key_exists('id', $c['docker']) && !empty($c['docker']['server']) && !empty($c['docker']['id']));
+        } catch (\Exception $ex) {
+            return false;
+        }
+    }
+
+    /**
+     * @param $id string L'id du serveur
+     * @param $server int L'id du serveur où tourne le docker
+     * @param $docker string L'id du docker
+     * @return bool
+     */
+    function updateServerDocker($id, $server, $docker) {
+        try {
+            $c = $this->db->updateOne(['_id' => new ObjectId($id)], ['$set' => ['docker' => [
+                'server' => $server,
+                'id' => $docker
+            ]]]);
+            if ($c->getModifiedCount() != 1)
+                return false;
+            return true;
+        } catch (\Exception $ex) {
+            return false;
+        }
+    }
+
+    /**
      * Retourne tout les serveurs ouverts
      * Un serveur est ouvert si son statut est:
      * - STARTING

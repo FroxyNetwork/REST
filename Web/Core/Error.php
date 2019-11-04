@@ -65,12 +65,14 @@ interface Error {
     const SERVER_TYPE_INVALID = [209, "Type must be a string !"];
     const SERVER_TYPE_LENGTH = [210, "Type length must be between 1 and 16 !"];
     const SERVER_TESTER_INVALID = [211, "Invalid id / token / client_id"];
-
+    const SERVER_SERVER_INVALID = [212, "Server must be a correct number and between 1 and 256 !"];
+    const SERVER_SERVERID_INVALID = [213, "Serverid must be a correct number and between 1 and 256 !"];
+    const SERVER_SERVER_ALREADY_ID = [214, "This server is already linked to a docker"];
+    const SERVER_DOCKER_SAVING = [215, "Error while saving docker configuration"];
 
     const INTERNAL_SERVER_JSON = [1000, "Internal Server Error: servers.json is not a valid json file !"];
     const INTERNAL_SERVER_CONFIG = [1001, "Internal Server Error: config.ini is not a valid ini file !"];
     const INTERNAL_SERVER_CONFIG_MONGODB = [1002, "Internal Server Error: config.ini is not a valid ini file !"];
     const INTERNAL_SERVER_DATABASE = [1003, "Internal Server Error: Cannot contact database !"];
     const SERVER_TYPE_NOT_FOUND = [1004, "Server type not found !"];
-    const SERVER_TYPE_FILE_NOT_FOUND = [1005, "Server file not found !"];
 }
