@@ -57,7 +57,8 @@ class ServerConfig {
             return;
         }
         $copy = [
-            "types" => []
+            "types" => [],
+            "vps" => []
         ];
         foreach ($parsedJson['types'] as $i => $type) {
             $arr = [];
@@ -123,6 +124,23 @@ class ServerConfig {
                 $arr['variants'] = $var;
             }
             $copy['types'][] = $arr;
+        }
+
+        foreach ($parsedJson['vps'] as $i => $vps) {
+            $arr = [];
+            if (!isset($vps['id']) || !is_string($vps['id'])) {
+                $this->error([ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON]);
+                $this->loaded = true;
+                return;
+            }
+            $arr['id'] = $vps['id'];
+            if (!isset($vps['host']) || !is_string($vps['host'])) {
+                $this->error([ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON]);
+                $this->loaded = true;
+                return;
+            }
+            $arr['host'] = $vps['host'];
+            $copy['vps'][] = $arr;
         }
         $this->parsedJson = $copy;
         $this->loaded = true;

@@ -255,7 +255,7 @@ class ServerController extends AppController {
                 return;
             }
             $dockerId = $data['id'];
-            if (!ctype_xdigit($dockerId)) {
+            if (!is_string($dockerId)) {
                 $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_SERVERID_INVALID);
                 return;
             }
