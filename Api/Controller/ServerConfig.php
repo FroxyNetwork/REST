@@ -140,6 +140,12 @@ class ServerConfig {
                 return;
             }
             $arr['host'] = $vps['host'];
+            if (!isset($vps['path']) || !is_string($vps['path'])) {
+                $this->error([ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON]);
+                $this->loaded = true;
+                return;
+            }
+            $arr['path'] = $vps['path'];
             $copy['vps'][] = $arr;
         }
         $this->parsedJson = $copy;

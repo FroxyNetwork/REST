@@ -18,7 +18,8 @@
   "vps": [
     {
       "id": "VPS_01",
-      "host": "localhost"
+      "host": "tcp://127.0.0.1:2376",
+      "path": "/home/<yourname>/.docker"
     }
   ]
 }
