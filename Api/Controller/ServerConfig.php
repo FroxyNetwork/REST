@@ -40,6 +40,7 @@ class ServerConfig {
      * string (id) => [int (index), int (second index or -1)]
      */
     private $keys = [];
+    private $vps = [];
 
     private function load() {
         // Return servers.json file
@@ -147,6 +148,7 @@ class ServerConfig {
             }
             $arr['path'] = $vps['path'];
             $copy['vps'][] = $arr;
+            $this->vps[] = $vps['id'];
         }
         $this->parsedJson = $copy;
         $this->loaded = true;
@@ -181,6 +183,14 @@ class ServerConfig {
             return $this->parsedJson["types"][$key[0]];
         else
             return $this->parsedJson["types"][$key[0]]["variants"][$key[1]];
+    }
+
+    public function existVps($key) {
+        if (!$this->loaded)
+            $this->load();
+        if ($this->error)
+            return false;
+        return in_array($key, $this->vps);
     }
 
     public function getErrorType() {

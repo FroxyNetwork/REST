@@ -250,15 +250,27 @@ class ServerController extends AppController {
                 return;
             }
             $serverId = $data['server'];
-            if (!Core::isInteger($serverId) || $serverId < 1 || $serverId > 256) {
+            if (!is_string($serverId)) {
                 $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_SERVER_INVALID);
                 return;
             }
+            // On vérifie si l'id du vps existe
+            /**
+             * @var ServerConfig $serverConfig
+             */
+            $serverConfig = $this->serverConfig;
+            if (!$serverConfig->existVps($serverId)) {
+                // Json error
+                $this->response->error($this->response::ERROR_NOTFOUND, Error::SERVER_SERVER_INVALID);
+                exit;
+            }
+
             $dockerId = $data['id'];
             if (!is_string($dockerId)) {
-                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_SERVERID_INVALID);
+                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_SERVER_DOCKER_INVALID);
                 return;
             }
+
             // On vérifie si le serveur existe
             $s = $this->serverDataController->getServer($id);
             if (!$s) {
@@ -271,7 +283,7 @@ class ServerController extends AppController {
                 return;
             }
             if ($this->serverDataController->updateServerDocker($id, $serverId, $dockerId)) {
-                $this->response->ok([], $this->response::SUCCESS_OK);
+                $this->response->ok();
                 return;
             } else {
                 // Erreur

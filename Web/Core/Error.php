@@ -65,8 +65,8 @@ interface Error {
     const SERVER_TYPE_INVALID = [209, "Type must be a string !"];
     const SERVER_TYPE_LENGTH = [210, "Type length must be between 1 and 16 !"];
     const SERVER_TESTER_INVALID = [211, "Invalid id / token / client_id"];
-    const SERVER_SERVER_INVALID = [212, "Server must be a correct number and between 1 and 256 !"];
-    const SERVER_SERVERID_INVALID = [213, "Serverid must be a string !"];
+    const SERVER_SERVER_INVALID = [212, "Invalid server !"];
+    const SERVER_SERVER_DOCKER_INVALID = [213, "Invalid docker id !"];
     const SERVER_SERVER_ALREADY_ID = [214, "This server is already linked to a docker"];
     const SERVER_DOCKER_SAVING = [215, "Error while saving docker configuration"];
 
