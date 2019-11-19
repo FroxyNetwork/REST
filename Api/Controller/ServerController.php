@@ -83,10 +83,10 @@ class ServerController extends AppController {
             ];
             if (isset($v['end_time']) && !is_null($server['end_time']))
                 $response["endTime"] = Core::formatDate($server['end_time']);
-            if (key_exists('docker', $server) && $oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::WEBSOCKET)) {
+            if (array_key_exists('docker', $server) && $oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::WEBSOCKET)) {
                 $response['docker'] = [];
-                $auth['server'] = $server['docker']['server'];
-                $auth['id'] = $server['docker']['id'];
+                $response['docker']['server'] = $server['docker']['server'];
+                $response['docker']['id'] = $server['docker']['id'];
             }
             $this->response->ok($response);
         } else {
@@ -108,10 +108,10 @@ class ServerController extends AppController {
                 ];
                 if (isset($v['end_time']) && !is_null($server['end_time']))
                     $d["endTime"] = Core::formatDate($server['end_time']);
-                if (key_exists('docker', $server) && $showDocker) {
-                    $response['docker'] = [];
-                    $auth['server'] = $server['docker']['server'];
-                    $auth['id'] = $server['docker']['id'];
+                if (array_key_exists('docker', $server) && $showDocker) {
+                    $d['docker'] = [];
+                    $d['docker']['server'] = $server['docker']['server'];
+                    $d['docker']['id'] = $server['docker']['id'];
                 }
                 $data['servers'][] = $d;
             }

@@ -59,8 +59,13 @@ class ServerDataController {
                 'port' => $c['port'],
                 'status' => $c['status'],
                 'creation_time' => $c['creation_time']->toDateTime(),
-                'end_time' => (!isset($v['end_time']) || is_null($c['end_time'])) ? null : $c['end_time']->toDateTime(),
+                'end_time' => (!isset($c['end_time']) || is_null($c['end_time'])) ? null : $c['end_time']->toDateTime(),
             ];
+            if (isset($c['docker'])) {
+                $server['docker'] = [];
+                $server['docker']['server'] = $c['docker']['server'];
+                $server['docker']['id'] = $c['docker']['id'];
+            }
             return $server;
         } catch(\Exception $ex) {
             return false;
@@ -123,7 +128,7 @@ class ServerDataController {
                 return [];
             $servers = [];
             foreach ($s as $v) {
-                $servers[] = [
+                $arr = [
                     'id' => (string) $v['_id'],
                     'name' => $v['name'],
                     'type' => $v['type'],
@@ -132,6 +137,12 @@ class ServerDataController {
                     'creation_time' => $v['creation_time']->toDateTime(),
                     'end_time' => (!isset($v['end_time']) || is_null($v['end_time'])) ? null : $v['end_time']->toDateTime(),
                 ];
+                if (isset($v['docker'])) {
+                    $arr['docker'] = [];
+                    $arr['docker']['server'] = $v['docker']['server'];
+                    $arr['docker']['id'] = $v['docker']['id'];
+                }
+                $servers[] = $arr;
             }
             return $servers;
         } catch(\Exception $ex) {
