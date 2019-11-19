@@ -96,6 +96,7 @@ class ServerController extends AppController {
             $data['size'] = count($servers);
             $data['servers'] = [];
             $showPort = $oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_SHOW_PORT);
+            $showDocker = $oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::WEBSOCKET);
             foreach ($servers as $server) {
                 $d = [
                     "id" => $server['id'],
@@ -107,7 +108,7 @@ class ServerController extends AppController {
                 ];
                 if (isset($v['end_time']) && !is_null($server['end_time']))
                     $d["endTime"] = Core::formatDate($server['end_time']);
-                if (key_exists('docker', $server) && $oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::WEBSOCKET)) {
+                if (key_exists('docker', $server) && $showDocker) {
                     $response['docker'] = [];
                     $auth['server'] = $server['docker']['server'];
                     $auth['id'] = $server['docker']['id'];
