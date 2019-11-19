@@ -83,6 +83,11 @@ class ServerController extends AppController {
             ];
             if (isset($v['end_time']) && !is_null($server['end_time']))
                 $response["endTime"] = Core::formatDate($server['end_time']);
+            if (key_exists('docker', $server) && $oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::WEBSOCKET)) {
+                $response['docker'] = [];
+                $auth['server'] = $server['docker']['server'];
+                $auth['id'] = $server['docker']['id'];
+            }
             $this->response->ok($response);
         } else {
             // Search all opened server
@@ -102,6 +107,11 @@ class ServerController extends AppController {
                 ];
                 if (isset($v['end_time']) && !is_null($server['end_time']))
                     $d["endTime"] = Core::formatDate($server['end_time']);
+                if (key_exists('docker', $server) && $oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::WEBSOCKET)) {
+                    $response['docker'] = [];
+                    $auth['server'] = $server['docker']['server'];
+                    $auth['id'] = $server['docker']['id'];
+                }
                 $data['servers'][] = $d;
             }
             $this->response->ok($data);
@@ -122,7 +132,7 @@ class ServerController extends AppController {
          * @var Server $oauth
          */
         $oauth = $this->oauth;
-        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_CREATE)) {
+        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::WEBSOCKET)) {
             // Invalid perm
             $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
             return;
@@ -217,7 +227,7 @@ class ServerController extends AppController {
          * @var Server $oauth
          */
         $oauth = $this->oauth;
-        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_CREATE)) {
+        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::WEBSOCKET)) {
             // Invalid perm
             $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
             return;
@@ -347,7 +357,7 @@ class ServerController extends AppController {
          * @var Server $oauth
          */
         $oauth = $this->oauth;
-        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_CREATE)) {
+        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::WEBSOCKET)) {
             // Invalid perm
             $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
             return;

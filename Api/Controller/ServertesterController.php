@@ -59,7 +59,7 @@ class ServertesterController extends AppController {
          */
         $oauth = $this->oauth;
 
-        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::WEBSOCKET_SERVER_CHECK)) {
+        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::WEBSOCKET)) {
             // Invalid perm
             $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
             return;
@@ -142,7 +142,7 @@ class ServertesterController extends AppController {
         }
         $ok = false;
         foreach ($scopeSplit as $c)
-            if ($c == "websocket_connection") {
+            if ($c == Scope::WEBSOCKET_CONNECTION) {
                 $ok = true;
                 break;
             }

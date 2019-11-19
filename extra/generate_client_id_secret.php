@@ -67,7 +67,7 @@ echo "db.oauth_clients.insert({
     client_secret: \"${websocket[1]}\",
     redirect_uri: null,
     grant_types: null,
-    scope: \"server_show_port server_create player_create player_show_realname player_show_ip websocket_check_token server_download\",
+    scope: \"server_show_port player_create player_show_realname player_show_ip websocket\",
     user_id: null
 });";
 
