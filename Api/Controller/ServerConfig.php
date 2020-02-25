@@ -141,6 +141,12 @@ class ServerConfig {
                 return;
             }
             $arr['host'] = $vps['host'];
+            if (!isset($vps['port']) || !is_integer($vps['port'])) {
+                $this->error([ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON]);
+                $this->loaded = true;
+                return;
+            }
+            $arr['port'] = $vps['port'];
             if (!isset($vps['path']) || !is_string($vps['path'])) {
                 $this->error([ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON]);
                 $this->loaded = true;
