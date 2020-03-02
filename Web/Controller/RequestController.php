@@ -184,8 +184,4 @@ class RequestController {
     function getAll() {
         return $this->params;
     }
-
-    function isAJAX() {
-        return array_key_exists("HTTP_TOKEN", $_SERVER) && !empty($_SERVER['HTTP_TOKEN']);
-    }
 }

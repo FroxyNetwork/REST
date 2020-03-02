@@ -34,7 +34,7 @@ interface Error {
     const GLOBAL_DATA_INVALID = [4, "Invalid data value !"];
     const GLOBAL_CONTROLLER_NOT_FOUND = [5, "No controller found for your request !"];
     const GLOBAL_UNKNOWN_ERROR = [6, "An error has occured while performing the operation"];
-    const GLOBAL_TOKEN_INVALUD = [7, "Invalid Token, Please save your informations and refresh your page !"];
+    const GLOBAL_TOKEN_INVALID = [7, "Invalid Token, Please save your informations and refresh your page !"];
     const ROUTE_NOT_FOUND = [8, "This route doesn't exist"];
 
     const PLAYER_DATA_LENGTH = [100, "The length of the search must be between 1 and 20, or equals to 36."];
@@ -52,6 +52,9 @@ interface Error {
     const PLAYER_EXP_POSITIVE = [112, "Exp must be positive !"];
     const PLAYER_TIME_FORMAT = [113, "Bad time format !"];
     const PLAYER_LASTLOGIN_GREATER = [114, "LastLogin must be greater than saved LastLogin !"];
+    const PLAYER_SERVER_INVALID = [115, "Invalid Server type !"];
+    const PLAYER_SERVER_NOT_FOUND = [116, "Server not found !"];
+    const PLAYER_SERVER_NOT_OPENED = [117, "Server isn't opened !"];
 
     const SERVER_ID_INVALID = [200, "Invalid id"];
     const SERVER_NOT_FOUND = [201, "Server not found"];
@@ -64,11 +67,15 @@ interface Error {
     const SERVER_ACTUALLY_ENDED = [208, "This server is already ended !"];
     const SERVER_TYPE_INVALID = [209, "Type must be a string !"];
     const SERVER_TYPE_LENGTH = [210, "Type length must be between 1 and 16 !"];
+    const SERVER_TESTER_INVALID = [211, "Invalid id / token / client_id"];
+    const SERVER_SERVER_INVALID = [212, "Invalid server !"];
+    const SERVER_SERVER_DOCKER_INVALID = [213, "Invalid docker id !"];
+    const SERVER_SERVER_ALREADY_ID = [214, "This server is already linked to a docker"];
+    const SERVER_DOCKER_SAVING = [215, "Error while saving docker configuration"];
 
     const INTERNAL_SERVER_JSON = [1000, "Internal Server Error: servers.json is not a valid json file !"];
     const INTERNAL_SERVER_CONFIG = [1001, "Internal Server Error: config.ini is not a valid ini file !"];
     const INTERNAL_SERVER_CONFIG_MONGODB = [1002, "Internal Server Error: config.ini is not a valid ini file !"];
     const INTERNAL_SERVER_DATABASE = [1003, "Internal Server Error: Cannot contact database !"];
     const SERVER_TYPE_NOT_FOUND = [1004, "Server type not found !"];
-    const SERVER_TYPE_FILE_NOT_FOUND = [1005, "Server file not found !"];
 }

@@ -31,6 +31,7 @@ use Api\Controller\DatasourceController\OAuth2DataController;
 use Api\Controller\DatasourceController\ServerDataController;
 use Api\Model\Scope;
 use Api\Model\ServerStatus;
+use http\Env\Response;
 use OAuth2\Request;
 use OAuth2\Server;
 use Web\Controller\AppController;
@@ -82,6 +83,11 @@ class ServerController extends AppController {
             ];
             if (isset($v['end_time']) && !is_null($server['end_time']))
                 $response["endTime"] = Core::formatDate($server['end_time']);
+            if (array_key_exists('docker', $server) && $oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::WEBSOCKET)) {
+                $response['docker'] = [];
+                $response['docker']['server'] = $server['docker']['server'];
+                $response['docker']['id'] = $server['docker']['id'];
+            }
             $this->response->ok($response);
         } else {
             // Search all opened server
@@ -90,6 +96,7 @@ class ServerController extends AppController {
             $data['size'] = count($servers);
             $data['servers'] = [];
             $showPort = $oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_SHOW_PORT);
+            $showDocker = $oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::WEBSOCKET);
             foreach ($servers as $server) {
                 $d = [
                     "id" => $server['id'],
@@ -101,6 +108,11 @@ class ServerController extends AppController {
                 ];
                 if (isset($v['end_time']) && !is_null($server['end_time']))
                     $d["endTime"] = Core::formatDate($server['end_time']);
+                if (array_key_exists('docker', $server) && $showDocker) {
+                    $d['docker'] = [];
+                    $d['docker']['server'] = $server['docker']['server'];
+                    $d['docker']['id'] = $server['docker']['id'];
+                }
                 $data['servers'][] = $d;
             }
             $this->response->ok($data);
@@ -121,7 +133,7 @@ class ServerController extends AppController {
          * @var Server $oauth
          */
         $oauth = $this->oauth;
-        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_CREATE)) {
+        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::WEBSOCKET)) {
             // Invalid perm
             $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
             return;
@@ -176,7 +188,7 @@ class ServerController extends AppController {
          * @var $oauth2DataController OAuth2DataController
          */
         $oauth2DataController = $this->oauth_storage;
-		$scope = "server_show_port player_show_realname player_show_ip";
+		$scope = "server_show_port player_show_more websocket_connection";
         if (!$oauth2DataController->createClient($clientSecret[0], $clientSecret[1], $scope, $s['id'])) {
             // Error, we delete the server created previously
             $this->serverDataController->deleteServer($s['id']);
@@ -216,7 +228,7 @@ class ServerController extends AppController {
          * @var Server $oauth
          */
         $oauth = $this->oauth;
-        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_CREATE)) {
+        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::WEBSOCKET)) {
             // Invalid perm
             $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
             return;
@@ -230,55 +242,115 @@ class ServerController extends AppController {
         }
         $id = $param;
         $data = json_decode($this->request->readInput(),TRUE);
-        // Check values
-        if (!ctype_xdigit($id)) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_ID_INVALID);
+        // Check if it ends with "/id"
+        if (Core::endsWith($id, "/id")) {
+            // Check values
+            $id = substr($id, 0, -3);
+
+            // Check values
+            if (!ctype_xdigit($id)) {
+                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_ID_INVALID);
+                return;
+            }
+            if (empty($data)) {
+                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_DATA_INVALID);
+                return;
+            }
+            if (!is_array($data) || empty($data['server']) || empty($data['id'])) {
+                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_DATA_INVALID);
+                return;
+            }
+            $serverId = $data['server'];
+            if (!is_string($serverId)) {
+                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_SERVER_INVALID);
+                return;
+            }
+            // On vérifie si l'id du vps existe
+            /**
+             * @var ServerConfig $serverConfig
+             */
+            $serverConfig = $this->serverConfig;
+            if (!$serverConfig->existVps($serverId)) {
+                // Json error
+                $this->response->error($this->response::ERROR_NOTFOUND, Error::SERVER_SERVER_INVALID);
+                exit;
+            }
+
+            $dockerId = $data['id'];
+            if (!is_string($dockerId)) {
+                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_SERVER_DOCKER_INVALID);
+                return;
+            }
+
+            // On vérifie si le serveur existe
+            $s = $this->serverDataController->getServer($id);
+            if (!$s) {
+                $this->response->error($this->response::ERROR_NOTFOUND, Error::SERVER_NOT_FOUND);
+                return;
+            }
+            // On check si c'est déjà modifié
+            if ($this->serverDataController->checkServerDocker($id)) {
+                $this->response->error($this->response::ERROR_FORBIDDEN, Error::SERVER_SERVER_ALREADY_ID);
+                return;
+            }
+            if ($this->serverDataController->updateServerDocker($id, $serverId, $dockerId)) {
+                $this->response->ok();
+                return;
+            } else {
+                // Erreur
+                $this->response->error($this->response::SERVER_INTERNAL, Error::SERVER_SAVING);
+            }
+        } else {
+            // Check values
+            if (!ctype_xdigit($id)) {
+                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_ID_INVALID);
+                return;
+            }
+            if (empty($data)) {
+                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_DATA_INVALID);
+                return;
+            }
+            if (!is_array($data) || empty($data['status'])) {
+                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_DATA_INVALID);
+                return;
+            }
+            $status = $data['status'];
+            if (!is_string($status)) {
+                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_STATUS_INVALID);
+                return;
+            }
+            if ($status != ServerStatus::WAITING && $status != ServerStatus::STARTED && $status != ServerStatus::ENDING) {
+                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_STATUS_INVALID);
+                return;
+            }
+            // On récupère l'ancien serveur
+            $s = $this->serverDataController->getServer($id);
+            if (!$s) {
+                $this->response->error($this->response::ERROR_NOTFOUND, Error::SERVER_NOT_FOUND);
+                return;
+            }
+            // On teste si le status est bon
+            if (!ServerStatus::isAfter($status, $s['status'])) {
+                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_STATUS_BEFORE, ["currentStatus" => $s['status']]);
+                return;
+            }
+            // Tout est bon, on update les valeurs
+            $s['status'] = $status;
+            $s2 = $this->serverDataController->updateServer($s);
+            if (!$s2) {
+                $this->response->error($this->response::SERVER_INTERNAL, Error::GLOBAL_UNKNOWN_ERROR);
+                return;
+            }
+            $this->response->ok([
+                "id" => $s['id'],
+                "name" => $s['name'],
+                "type" => $s['type'],
+                "port" => $s['port'],
+                "status" => $s['status'],
+                "creationTime" => Core::formatDate($s['creation_time'])
+            ], $this->response::SUCCESS_OK);
             return;
         }
-        if (empty($data)) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_DATA_INVALID);
-            return;
-        }
-        if (!is_array($data) || empty($data['status'])) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_DATA_INVALID);
-            return;
-        }
-        $status = $data['status'];
-        if (!is_string($status)) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_STATUS_INVALID);
-            return;
-        }
-        if ($status != ServerStatus::WAITING && $status != ServerStatus::STARTED && $status != ServerStatus::ENDING) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_STATUS_INVALID);
-            return;
-        }
-        // On récupère l'ancien serveur
-        $s = $this->serverDataController->getServer($id);
-        if (!$s) {
-            $this->response->error($this->response::ERROR_NOTFOUND, Error::SERVER_NOT_FOUND);
-            return;
-        }
-        // On teste si le status est bon
-        if (!ServerStatus::isAfter($status, $s['status'])) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_STATUS_BEFORE, ["currentStatus" => $s['status']]);
-            return;
-        }
-        // Tout est bon, on update les valeurs
-        $s['status'] = $status;
-        $s2 = $this->serverDataController->updateServer($s);
-        if (!$s2) {
-            $this->response->error($this->response::SERVER_INTERNAL, Error::GLOBAL_UNKNOWN_ERROR);
-            return;
-        }
-        $this->response->ok([
-            "id" => $s['id'],
-            "name" => $s['name'],
-            "type" => $s['type'],
-            "port" => $s['port'],
-            "status" => $s['status'],
-            "creationTime" => Core::formatDate($s['creation_time'])
-        ], $this->response::SUCCESS_CREATED);
-        return;
     }
 
     public function delete($param) {
@@ -286,7 +358,7 @@ class ServerController extends AppController {
          * @var Server $oauth
          */
         $oauth = $this->oauth;
-        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_CREATE)) {
+        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::WEBSOCKET)) {
             // Invalid perm
             $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
             return;

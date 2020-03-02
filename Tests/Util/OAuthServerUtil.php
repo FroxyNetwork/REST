@@ -27,9 +27,12 @@
 
 namespace Tests\Util;
 
+use OAuth2\ClientAssertionType\ClientAssertionTypeInterface;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
+use OAuth2\ScopeInterface;
 use OAuth2\Server;
+use OAuth2\TokenType\TokenTypeInterface;
 
 class OAuthServerUtil extends Server {
     /**

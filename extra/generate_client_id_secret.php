@@ -38,8 +38,7 @@
  *
  * @return array Client and Secret
  */
-function generateClientSecret() {
-    $prefix = 'WEBSOCKET_';
+function generateClientSecret($prefix) {
     $client = $prefix . generateAuthorizationCode(32);
     $secret = "SECRET_" . generateAuthorizationCode(32);
     return [$client, $secret];
@@ -60,13 +59,23 @@ function generateAuthorizationCode($ln) {
     return substr(hash('sha512', $randomData), 0, $ln);
 }
 
-$websocket = generateClientSecret();
+$websocket = generateClientSecret('WEBSOCKET_');
+$bungee = generateClientSecret('BUNGEE_');
 
 echo "db.oauth_clients.insert({
     client_id: \"${websocket[0]}\",
     client_secret: \"${websocket[1]}\",
     redirect_uri: null,
     grant_types: null,
-    scope: \"server_show_port server_create player_create player_show_realname player_show_ip websocket_check_token server_download\",
+    scope: \"server_show_port player_create player_show_more websocket\",
     user_id: null
-})";
+});";
+
+echo "db.oauth_clients.insert({
+    client_id: \"${bungee[0]}\",
+    client_secret: \"${bungee[1]}\",
+    redirect_uri: null,
+    grant_types: null,
+    scope: \"server_show_port player_create player_show_more websocket_connection\",
+    user_id: null
+});";

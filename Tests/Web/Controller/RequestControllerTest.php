@@ -43,8 +43,10 @@ class RequestControllerTest extends TestCase {
         $_SERVER['REQUEST_URI'] = "/a/path/file.php?option=test&option2=true";
         $_SERVER['QUERY_STRING'] = "option=test&option2=true";
         $_SERVER['REQUEST_METHOD'] = "GET";
+        $_GET = [];
         $_GET["option"] = "test";
         $_GET["option2"] = true;
+        $_POST = [];
         $_POST["aaaa"] = "bbbb";
         $this->request = new RequestController();
     }
@@ -70,7 +72,6 @@ class RequestControllerTest extends TestCase {
 
         self::assertSameSize($arr, $all);
         self::assertSame($arr, $all);
-        self::assertFalse($this->request->isAJAX());
     }
 
     function test_methods2() {
@@ -96,6 +97,5 @@ class RequestControllerTest extends TestCase {
         self::assertEquals("", $this->request->getQueryString());
         self::assertTrue(is_array($this->request->getAll()));
         self::assertEmpty($this->request->getAll());
-        self::assertFalse($this->request->isAJAX());
     }
 }

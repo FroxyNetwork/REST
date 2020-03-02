@@ -29,6 +29,7 @@
 namespace Api\Controller;
 
 use Api\Controller\DatasourceController\PlayerDataController;
+use Api\Controller\DatasourceController\ServerDataController;
 use Api\Model\Scope;
 use OAuth2\Request;
 use OAuth2\Server;
@@ -43,9 +44,15 @@ class PlayerController extends AppController {
      */
     private $playerDataController;
 
+    /**
+     * @var ServerDataController
+     */
+    private $serverDataController;
+
     public function __construct() {
         parent::__construct();
         $this->playerDataController = Core::getDataController("Player");
+        $this->serverDataController = Core::getDataController("Server");
     }
 
     public function get($param) {
@@ -72,24 +79,23 @@ class PlayerController extends AppController {
             $this->response->error($this->response::ERROR_NOTFOUND, Error::PLAYER_NOT_FOUND);
             return;
         }
-        $displayName = "<HIDDEN>";
-        if ($oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::PLAYER_SHOW_REALNAME))
-            $displayName = $player['display_name'];
-        $ip = "<HIDDEN>";
-        if ($oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::PLAYER_SHOW_IP))
-            $ip = $player['ip'];
-        $this->response->ok([
+        $return = [
             "uuid" => $player['uuid'],
             "nickname" => $player['nickname'],
-            "displayName" => $displayName,
             "coins" => $player['coins'],
             "level" => $player['level'],
             "exp" => $player['exp'],
             "firstLogin" => Core::formatDate($player['first_login']),
             "lastLogin" => Core::formatDate($player['last_login']),
-            "ip" => $ip,
             "lang" => $player['lang']
-        ]);
+        ];
+        if ($oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::PLAYER_SHOW_MORE)) {
+            $return['displayName'] = $player['display_name'];
+            $return['ip'] = $player['ip'];
+            if (isset($player['server']))
+                $return['server'] = $player['server'];
+        }
+        $this->response->ok($return);
     }
 
     /**
@@ -188,10 +194,13 @@ class PlayerController extends AppController {
         "exp" => 12,
         "lastLogin" => "...",
         "ip" => "127.0.0.1",
-        "lang" => "fr_FR"
+        "lang" => "fr_FR",
+        "server" => "62ec3f29d48a15ce2de9106981945d17082935ae"
      * }
      * // TODO Retirer "nickname" (Trouver un autre moyen pour changer de pseudo (Genre une autre url + vérif par mail etc ==> Mail ?))
      * // TODO Retirer "coins", "level", "exp" (On va gérer ça par un autre moyen)
+     *
+     * Update specific user
      * @param $param
      */
     public function put($param) {
@@ -229,6 +238,7 @@ class PlayerController extends AppController {
         $lastLogin = $data['lastLogin'];
         $ip = $data['ip'];
         $lang = $data['lang'];
+        $newServerId = $data['server'];
         if (!is_string($uuid) || (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $uuid) !== 1)) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_UUID_FORMAT);
             return;
@@ -241,16 +251,16 @@ class PlayerController extends AppController {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_DISPLAYNAME_LENGTH);
             return;
         }
-        if ($coins < 0) {
+        if (!is_int($coins) || $coins < 0) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_COINS_POSITIVE);
             return;
         }
-        if ($level < 0) {
+        if (!is_int($level) || $level < 0) {
             // TODO Autoriser la suppression des niveaux (Genre on peut "acheter" des améliorations avec des niveaux, ...)
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_LEVEL_POSITIVE);
             return;
         }
-        if ($exp < 0) {
+        if (!is_int($exp) || $exp < 0) {
             // TODO Idem que "level"
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_EXP_POSITIVE);
             return;
@@ -278,7 +288,11 @@ class PlayerController extends AppController {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_LASTLOGIN_GREATER);
             return;
         }
-        // Tout est bon, on update les valeurs
+        // Check if server is string type
+        if (isset($newServerId) && !is_string($newServerId)) {
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_SERVER_INVALID);
+            return;
+        }
         $p['nickname'] = $nickname;
         $p['display_name'] = $displayName;
         $p['coins'] = $coins;
@@ -287,13 +301,47 @@ class PlayerController extends AppController {
         $p['last_login'] = $lastLogin;
         $p['ip'] = $ip;
         $p['lang'] = $lang;
+        // Check if it's a different server
+        if (isset($newServerId) && (!isset($p['server']) || $p['server']['id'] != $newServerId)) {
+            // Update new Server Id
+            // Get server
+            $server = $this->serverDataController->getServer($newServerId);
+            // Check if server is found
+            if (is_null($server) || !$server) {
+                // Server not found
+                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_SERVER_NOT_FOUND);
+                return;
+            }
+            // Check if server is opened
+            // 'STARTING', 'WAITING', 'STARTED', 'ENDING'
+            if ($server['status'] != 'STARTING' && $server['status'] != 'WAITING' && $server['status'] != 'STARTED' && $server['status'] != 'ENDING') {
+                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_SERVER_NOT_OPENED);
+                return;
+            }
+            $p['server'] = [
+                'id' => $server['id'],
+                'name' => $server['name'],
+                'type' => $server['type']
+            ];
+            if (isset($server['docker'])) {
+                // Save docker
+                $p['server']['docker'] = [
+                    'server' => $server['docker']['server'],
+                    'id' => $server['docker']['id']
+                ];
+            }
+        }
+        if (!isset($newServerId))
+            // Unset server to clear it if no server has been specified in the request
+            unset($p['server']);
+        // Tout est bon, on update les valeurs
         $p2 = $this->playerDataController->updateUser($p);
         if ($p2 == null) {
             // Unknown error
             $this->response->error($this->response::SERVER_INTERNAL, Error::GLOBAL_UNKNOWN_ERROR);
             return;
         }
-        $this->response->ok([
+        $return = [
             "uuid" => $p2['uuid'],
             "nickname" => $p2['nickname'],
             "displayName" => $p2['display_name'],
@@ -304,7 +352,10 @@ class PlayerController extends AppController {
             "lastLogin" => Core::formatDate($p2['last_login']),
             "ip" => $p2['ip'],
             "lang" => $p2['lang']
-        ], $this->response::SUCCESS_OK);
+        ];
+        if (isset($p2['server']))
+            $return['server'] = $p2['server'];
+        $this->response->ok($return, $this->response::SUCCESS_OK);
         return;
     }
 
