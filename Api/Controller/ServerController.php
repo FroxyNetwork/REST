@@ -188,7 +188,7 @@ class ServerController extends AppController {
          * @var $oauth2DataController OAuth2DataController
          */
         $oauth2DataController = $this->oauth_storage;
-		$scope = "server_show_port player_show_realname player_show_ip websocket_connection";
+		$scope = "server_show_port player_show_more websocket_connection";
         if (!$oauth2DataController->createClient($clientSecret[0], $clientSecret[1], $scope, $s['id'])) {
             // Error, we delete the server created previously
             $this->serverDataController->deleteServer($s['id']);

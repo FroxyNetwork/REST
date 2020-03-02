@@ -34,7 +34,7 @@ interface Error {
     const GLOBAL_DATA_INVALID = [4, "Invalid data value !"];
     const GLOBAL_CONTROLLER_NOT_FOUND = [5, "No controller found for your request !"];
     const GLOBAL_UNKNOWN_ERROR = [6, "An error has occured while performing the operation"];
-    const GLOBAL_TOKEN_INVALUD = [7, "Invalid Token, Please save your informations and refresh your page !"];
+    const GLOBAL_TOKEN_INVALID = [7, "Invalid Token, Please save your informations and refresh your page !"];
     const ROUTE_NOT_FOUND = [8, "This route doesn't exist"];
 
     const PLAYER_DATA_LENGTH = [100, "The length of the search must be between 1 and 20, or equals to 36."];
@@ -52,6 +52,9 @@ interface Error {
     const PLAYER_EXP_POSITIVE = [112, "Exp must be positive !"];
     const PLAYER_TIME_FORMAT = [113, "Bad time format !"];
     const PLAYER_LASTLOGIN_GREATER = [114, "LastLogin must be greater than saved LastLogin !"];
+    const PLAYER_SERVER_INVALID = [115, "Invalid Server type !"];
+    const PLAYER_SERVER_NOT_FOUND = [116, "Server not found !"];
+    const PLAYER_SERVER_NOT_OPENED = [117, "Server isn't opened !"];
 
     const SERVER_ID_INVALID = [200, "Invalid id"];
     const SERVER_NOT_FOUND = [201, "Server not found"];

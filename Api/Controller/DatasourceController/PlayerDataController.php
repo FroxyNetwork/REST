@@ -64,6 +64,8 @@ class PlayerDataController {
                 'ip' => $c['ip'],
                 'lang' => $c['lang']
             ];
+            if (isset($c['server']))
+                $user['server'] = $c['server'];
             return $user;
         } catch (\Exception $ex) {
             return false;
@@ -89,8 +91,11 @@ class PlayerDataController {
                 'first_login' => $c['first_login']->toDateTime(),
                 'last_login' => $c['last_login']->toDateTime(),
                 'ip' => $c['ip'],
-                'lang' => $c['lang']
+                'lang' => $c['lang'],
+                'server' => $c['server']
             ];
+            if (isset($c['server']))
+                $user['server'] = $c['server'];
             return $user;
         } catch (\Exception $ex) {
             return false;
@@ -135,7 +140,7 @@ class PlayerDataController {
      */
     function updateUser($p) {
         try {
-            $c = $this->db->updateOne(["_id" => $p['uuid']], ['$set' => ['nickname' => $p['nickname'], 'display_name' => $p['display_name'], 'coins' => $p['coins'], 'level' => $p['level'], 'exp' => $p['exp'], 'last_login' => new UTCDateTime($p['last_login']->getTimestamp() * 1000), 'ip' => $p['ip'], 'lang' => $p['lang']]]);
+            $c = $this->db->updateOne(["_id" => $p['uuid']], ['$set' => ['nickname' => $p['nickname'], 'display_name' => $p['display_name'], 'coins' => $p['coins'], 'level' => $p['level'], 'exp' => $p['exp'], 'last_login' => new UTCDateTime($p['last_login']->getTimestamp() * 1000), 'ip' => $p['ip'], 'lang' => $p['lang'], 'server' => $p['server']]]);
             if ($c->getModifiedCount() != 1)
                 return false;
             return $p;
