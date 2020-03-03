@@ -28,7 +28,7 @@
 namespace Api\Model;
 
 interface Scope {
-    const SERVER_SHOW_PORT = "server_show_port";
+    const SERVER_SHOW_MORE = "server_show_more";
     const PLAYER_CREATE = "player_create";
     const PLAYER_SHOW_MORE = "player_show_more";
     const WEBSOCKET_CONNECTION = "websocket_connection";

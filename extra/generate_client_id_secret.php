@@ -67,7 +67,7 @@ echo "db.oauth_clients.insert({
     client_secret: \"${websocket[1]}\",
     redirect_uri: null,
     grant_types: null,
-    scope: \"server_show_port player_create player_show_more websocket\",
+    scope: \"server_show_more player_create player_show_more websocket\",
     user_id: null
 });";
 
@@ -76,6 +76,6 @@ echo "db.oauth_clients.insert({
     client_secret: \"${bungee[1]}\",
     redirect_uri: null,
     grant_types: null,
-    scope: \"server_show_port player_create player_show_more websocket_connection\",
+    scope: \"server_show_more player_create player_show_more websocket_connection\",
     user_id: null
 });";
