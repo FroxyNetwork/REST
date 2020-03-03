@@ -238,7 +238,7 @@ class PlayerController extends AppController {
         $lastLogin = $data['lastLogin'];
         $ip = $data['ip'];
         $lang = $data['lang'];
-        $newServerId = $data['server'];
+        $newServerId = isset($data['server']) ? $data['server'] : null;
         if (!is_string($uuid) || (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $uuid) !== 1)) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_UUID_FORMAT);
             return;
