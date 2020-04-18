@@ -50,6 +50,10 @@ class ServerController extends AppController {
         $this->serverDataController = Core::getDataController("Server");
     }
 
+    /**
+     * @param $param
+     * $_GET['type'] = 1 for servers, 2 for bungees, 3 for all
+     */
     public function get($param) {
         /**
          * @var Server $oauth
@@ -79,8 +83,8 @@ class ServerController extends AppController {
                 "status" => $server['status'],
                 "creationTime" => Core::formatDate($server['creation_time'])
             ];
-            if (isset($v['end_time']) && !is_null($server['end_time']))
-                $response["endTime"] = Core::formatDate($server['end_time']);
+            if (isset($server['end_time']) && !is_null($server['end_time']))
+                $response['endTime'] = Core::formatDate($server['end_time']);
             if (array_key_exists('docker', $server) && $websocket) {
                 $response['docker'] = [];
                 $response['docker']['server'] = $server['docker']['server'];
@@ -90,8 +94,15 @@ class ServerController extends AppController {
                 $response['port'] = $server['port'];
             $this->response->ok($response);
         } else {
+            $type = 3;
+            if (isset($_GET['type']) && !empty($_GET['type'])) {
+                if ($_GET['type'] == 1)
+                    $type = 1;
+                else if ($_GET['type'] == 2)
+                    $type = 2;
+            }
             // Search all opened server
-            $servers = $this->serverDataController->getOpenedServers();
+            $servers = $this->serverDataController->getOpenedServers($type);
             $data = [];
             $data['size'] = count($servers);
             $data['servers'] = [];
@@ -105,7 +116,7 @@ class ServerController extends AppController {
                     "status" => $server['status'],
                     "creationTime" => Core::formatDate($server['creation_time'])
                 ];
-                if (isset($v['end_time']) && !is_null($server['end_time']))
+                if (isset($server['end_time']) && !is_null($server['end_time']))
                     $d["endTime"] = Core::formatDate($server['end_time']);
                 if (array_key_exists('docker', $server) && $websocket) {
                     $d['docker'] = [];

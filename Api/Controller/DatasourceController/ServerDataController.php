@@ -28,6 +28,7 @@
 namespace Api\Controller\DatasourceController;
 
 use Api\Model\ServerStatus;
+use Grpc\Server;
 use MongoDB\BSON\ObjectId;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\Collection;
@@ -116,11 +117,23 @@ class ServerDataController {
      * - WAITING
      * - STARTED
      * - ENDING
+     * @param $mode integer 1 = only servers, 2 = only bungees, 3 = servers and bungees
      * @return array[]
      */
-    function getOpenedServers() {
+    function getOpenedServers($mode) {
         try {
-            $c = $this->db->find(["status" => ['$in' => ['STARTING', 'WAITING', 'STARTED', 'ENDING']]]);
+            switch ($mode) {
+                case 1:
+                    $req = ['$and' => [['status' => ['$in' => [ServerStatus::STARTING, ServerStatus::WAITING, ServerStatus::STARTED, ServerStatus::ENDING]]], ['type' => ['$ne' => 'BUNGEE']]]];
+                    break;
+                case 2:
+                    $req = ['$and' => [['status' => ['$in' => [ServerStatus::STARTING, ServerStatus::WAITING, ServerStatus::STARTED, ServerStatus::ENDING]]], ['type' => 'BUNGEE']]];
+                    break;
+                case 3:
+                default:
+                    $req = ['status' => ['$in' => [ServerStatus::STARTING, ServerStatus::WAITING, ServerStatus::STARTED, ServerStatus::ENDING]]];
+            }
+            $c = $this->db->find($req);
             if (empty($c) || $c == null)
                 return [];
             $s = $c->toArray();
@@ -152,7 +165,7 @@ class ServerDataController {
 
     /**
      * @param $name string Le nom du serveur
-     * @param $type string Le type du serveur
+     * @param $type string Le type de serveur
      * @param $port int Le port du serveur
      *
      * @return array|bool false si erreur, ou le serveur

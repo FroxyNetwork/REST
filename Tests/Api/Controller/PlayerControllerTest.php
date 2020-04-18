@@ -179,8 +179,6 @@ class PlayerControllerTest extends TestCase {
         $user = $this->responseController->getLastData()['data'];
         self::assertEquals("86173d9f-f7f4-4965-8e9d-f37783bf6fa7", $user['uuid']);
         self::assertEquals("0ddlyoko", $user['nickname']);
-        self::assertEquals("<HIDDEN>", $user['ip']);
-        self::assertEquals("<HIDDEN>", $user['displayName']);
 
         // Go Back
         $this->oauth->setBool(true);
