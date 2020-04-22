@@ -48,7 +48,7 @@ class WebController extends AppController {
      * [
      *      "user" : $user
      * ]
-     * Donc, pour tout les controleurs, il y aura une variable $user avec comme valeur user
+     * Donc, pour tout les contrôleurs, il y aura une variable $user avec comme valeur user
      *
      * @param array $list Une liste de variables à ajouter aux controleurs
      * @param Database $db La connexion bdd
@@ -57,7 +57,6 @@ class WebController extends AppController {
         $this->db = $db;
         // OAuth2
         $this->loadOAuth2($list);
-        $this->loadToken($list);
         $this->loadServerConfig($list);
     }
 
@@ -70,15 +69,6 @@ class WebController extends AppController {
         $server->addGrantType(new RefreshToken($storage));
         $list['oauth'] = $server;
         $list['oauth_storage'] = $storage;
-    }
-
-    function loadToken(array &$list) {
-        /**
-         * @var TokenController $tokenController
-         */
-        $tokenController = Core::getAppController("Token");
-        $tokenController->load();
-        $list['token'] = $tokenController;
     }
 
     function loadServerConfig(array &$list) {

@@ -59,23 +59,22 @@ function generateAuthorizationCode($ln) {
     return substr(hash('sha512', $randomData), 0, $ln);
 }
 
-$websocket = generateClientSecret('WEBSOCKET_');
-$bungee = generateClientSecret('BUNGEE_');
+$vps = generateClientSecret('VPS_01');
 
 echo "db.oauth_clients.insert({
-    client_id: \"${websocket[0]}\",
-    client_secret: \"${websocket[1]}\",
+    client_id: \"CORE\",
+    client_secret: \"".generateAuthorizationCode(32)."\",
     redirect_uri: null,
     grant_types: null,
-    scope: \"server_show_more player_create player_show_more websocket\",
+    scope: \"server_show_more player_create player_show_more core server_tester\",
     user_id: null
 });";
 
 echo "db.oauth_clients.insert({
-    client_id: \"${bungee[0]}\",
-    client_secret: \"${bungee[1]}\",
+    client_id: \"VPS_01\",
+    client_secret: \"".generateAuthorizationCode(32)."\",
     redirect_uri: null,
     grant_types: null,
-    scope: \"server_show_more player_create player_show_more websocket_connection\",
+    scope: \"server_show_more player_show_more servers_manager server_tester\",
     user_id: null
 });";

@@ -107,7 +107,7 @@ class ServerController extends AppController {
             $data['size'] = count($servers);
             $data['servers'] = [];
             $showMore = $oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_SHOW_MORE);
-            $websocket = $oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::WEBSOCKET);
+            $isServerManager = $oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVERS_MANAGER);
             foreach ($servers as $server) {
                 $d = [
                     "id" => $server['id'],
@@ -118,7 +118,7 @@ class ServerController extends AppController {
                 ];
                 if (isset($server['end_time']) && !is_null($server['end_time']))
                     $d["endTime"] = Core::formatDate($server['end_time']);
-                if (array_key_exists('docker', $server) && $websocket) {
+                if (array_key_exists('docker', $server) && $isServerManager) {
                     $d['docker'] = [];
                     $d['docker']['server'] = $server['docker']['server'];
                     $d['docker']['id'] = $server['docker']['id'];
@@ -200,7 +200,7 @@ class ServerController extends AppController {
          * @var $oauth2DataController OAuth2DataController
          */
         $oauth2DataController = $this->oauth_storage;
-		$scope = "server_show_more player_show_more websocket_connection";
+		$scope = "server_show_more player_show_more servers";
         if (!$oauth2DataController->createClient($clientSecret[0], $clientSecret[1], $scope, $s['id'])) {
             // Error, we delete the server created previously
             $this->serverDataController->deleteServer($s['id']);

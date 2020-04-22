@@ -29,6 +29,7 @@ namespace Api\Controller;
 
 use Api\Controller\DatasourceController\OAuth2DataController;
 use Api\Controller\DatasourceController\ServerDataController;
+use Api\Controller\DatasourceController\ServertesterDataController;
 use Api\Model\Scope;
 use OAuth2\Request;
 use OAuth2\Server;
@@ -43,15 +44,21 @@ class ServertesterController extends AppController {
      */
     private $serverDataController;
 
+    /**
+     * @var ServertesterDataController
+     */
+    private $servertesterDataController;
+
     public function __construct() {
         parent::__construct();
         $this->serverDataController = Core::getDataController("Server");
+        $this->servertesterDataController = Core::getDataController("Servertester");
     }
 
     /**
-     * $param = a2b... (The ObjectId)
+     * $param = a2b... (The id)
      * $_GET['client_id'] = CLIENT_KOTH_123... (The client_id)
-     * $_GET['token'] = abc... (The token)
+     * $_GET['token'] = abc... (The token returned previously by the server)
      */
     public function get($param) {
         /**
@@ -59,43 +66,16 @@ class ServertesterController extends AppController {
          */
         $oauth = $this->oauth;
 
-        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::WEBSOCKET)) {
-            // Invalid perm
-            $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
-            return;
-        }
+        // Test if there is an id or not
         if (Core::startsWith($param, "/"))
             $param = substr($param, 1);
         $ln = strlen($param);
+        // If there is not id, returns a Bad Request error
         if ($ln <= 0) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_INVALID);
             return;
         }
         $id = $param;
-
-        // Invalid ObjectId
-        if (!ctype_xdigit($id) && $id != "bungeecord") {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_INVALID);
-            return;
-        }
-
-        // Invalid client_id
-        if (!isset($_GET['client_id']) || empty($_GET['client_id'])) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_INVALID);
-            return;
-        }
-        $explode = explode("_", $_GET['client_id']);
-        // Doesn't start with "CLIENT" and doesn't have at least 2 underscores or doesn't start with "BUNGEE"
-        if (count($explode) < 2) {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_INVALID);
-            return;
-        } else if ($id == "bungeecord" && $explode[0] != "BUNGEE") {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_INVALID);
-            return;
-        } else if ($id != "bungeecord" && $explode[0] != "CLIENT") {
-            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_INVALID);
-            return;
-        }
 
         // Invalid token
         if (!isset($_GET['token']) || empty($_GET['token'])) {
@@ -106,50 +86,87 @@ class ServertesterController extends AppController {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_INVALID);
             return;
         }
-        // Search server
-        /**
-         * @var OAuth2DataController $oauth_storage
-         */
-        $oauth_storage = $this->oauth_storage;
-        $client = $oauth_storage->getAccessToken($_GET['token']);
-        if (!$client) {
-            $this->response->error($this->response::ERROR_NOTFOUND, Error::SERVER_TESTER_INVALID);
-            return;
-        }
-        // Not same object_id
-        if ($id != "bungeecord" && $client['user_id']->__toString() != $id) {
-            $this->response->error($this->response::ERROR_UNAUTHORIZED, Error::SERVER_TESTER_INVALID);
-            return;
-        }
-        // Not same client_id
-        if ($client['client_id'] != $_GET['client_id']) {
-            $this->response->error($this->response::ERROR_UNAUTHORIZED, Error::SERVER_TESTER_INVALID);
-            return;
-        }
-        // Is expired ?
-        $expireTime = $client['expires'];
-        if (time() > $expireTime) {
-            $this->response->error($this->response::ERROR_UNAUTHORIZED, Error::SERVER_TESTER_INVALID);
+        $token = $_GET['token'];
+
+        // VPS checker
+        // Check if it's the CoreManager
+        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVERTESTER_CHECK)) {
+            // Invalid perm
+            $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
             return;
         }
 
-        // Does the client have the "websocket_connection" scope
-        $scopeSplit = explode(" ", $client['scope']);
-        if (!$scopeSplit || count($scopeSplit) <= 0) {
-            // Permission
-            $this->response->ok(["ok" => false]);
+        $savedToken = $this->servertesterDataController->get($id);
+        if (!$savedToken) {
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_INVALID);
             return;
         }
-        $ok = false;
-        foreach ($scopeSplit as $c)
-            if ($c == Scope::WEBSOCKET_CONNECTION) {
-                $ok = true;
-                break;
-            }
-        $this->response->ok(["ok" => $ok]);
+
+        // Check if token is the same
+        if ($token != $savedToken['token']) {
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TESTER_INVALID);
+            return;
+        }
+
+        // Delete the token
+        $this->servertesterDataController->delete($id);
+
+        // Returns
+        $this->response->ok(["ok" => true]);
     }
 
+    public function post($param) {
+        /**
+         * @var Server $oauth
+         */
+        $oauth = $this->oauth;
+        $accessTokenData = $oauth->getAccessTokenData(Request::createFromGlobals(), null);
+        if (is_null($accessTokenData) || !isset($accessTokenData['scope']) || !$accessTokenData['scope'] || !$oauth->getScopeUtil()->checkScope(Scope::SERVERTESTER_CREATE, $accessTokenData['scope'])) {
+            // Invalid perm
+            $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
+            return;
+        }
+        // Generate token
+        $token = $this->generateAuthorizationCode(32);
+        // Save token
+        if (!$this->servertesterDataController->create($accessTokenData['client_id'], $token)) {
+            // Unknown error
+            $this->response->error($this->response::SERVER_INTERNAL, Error::SERVER_TESTER_UNKNOWN);
+            return;
+        }
+
+        // Send the token
+        $this->response->ok([
+            "id" => $accessTokenData['client_id'],
+            "token" => $token
+        ]);
+    }
+
+
     public function implementedMethods() {
-        return ["GET"];
+        return ["GET", "POST"];
+    }
+
+    /**
+     * @see https://github.com/bshaffer/oauth2-server-php/blob/master/src/OAuth2/ResponseType/AuthorizationCode.php#L84
+     *
+     * @param $ln int The size of the random data
+     *
+     * @return bool|string
+     * @throws \Exception
+     */
+    function generateAuthorizationCode($ln) {
+        if (function_exists('openssl_random_pseudo_bytes')) {
+            $randomData = openssl_random_pseudo_bytes(64);
+        } elseif (function_exists('random_bytes')) {
+            $randomData = random_bytes(64);
+        } elseif (function_exists('mcrypt_create_iv')) {
+            $randomData = mcrypt_create_iv(64, MCRYPT_DEV_URANDOM);
+        } elseif (@file_exists('/dev/urandom')) { // Get 64 bytes of random data
+            $randomData = file_get_contents('/dev/urandom', false, null, 0, 64) . uniqid(mt_rand(), true);
+        } else {
+            $randomData = mt_rand() . mt_rand() . mt_rand() . mt_rand() . microtime(true) . uniqid(mt_rand(), true);
+        }
+        return substr(hash('sha512', $randomData), 0, $ln);
     }
 }

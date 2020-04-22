@@ -20,7 +20,7 @@
       "id": "VPS_01",
       "host": "127.0.0.1",
       "port": 2376,
-      "path": "/home/<yourname>/.docker"
+      "max_servers": 4
     }
   ]
 }

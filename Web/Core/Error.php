@@ -67,11 +67,12 @@ interface Error {
     const SERVER_ACTUALLY_ENDED = [208, "This server is already ended !"];
     const SERVER_TYPE_INVALID = [209, "Type must be a string !"];
     const SERVER_TYPE_LENGTH = [210, "Type length must be between 1 and 16 !"];
-    const SERVER_TESTER_INVALID = [211, "Invalid id / token / client_id"];
-    const SERVER_SERVER_INVALID = [212, "Invalid server !"];
-    const SERVER_SERVER_DOCKER_INVALID = [213, "Invalid docker id !"];
-    const SERVER_SERVER_ALREADY_ID = [214, "This server is already linked to a docker"];
-    const SERVER_DOCKER_SAVING = [215, "Error while saving docker configuration"];
+    const SERVER_TESTER_INVALID = [211, "Invalid id or token"];
+    const SERVER_TESTER_UNKNOWN = [212, "Unknown error"];
+    const SERVER_SERVER_INVALID = [213, "Invalid server !"];
+    const SERVER_SERVER_DOCKER_INVALID = [214, "Invalid docker id !"];
+    const SERVER_SERVER_ALREADY_ID = [215, "This server is already linked to a docker"];
+    const SERVER_DOCKER_SAVING = [216, "Error while saving docker configuration"];
 
     const INTERNAL_SERVER_JSON = [1000, "Internal Server Error: servers.json is not a valid json file !"];
     const INTERNAL_SERVER_CONFIG = [1001, "Internal Server Error: config.ini is not a valid ini file !"];

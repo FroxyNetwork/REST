@@ -31,6 +31,9 @@ interface Scope {
     const SERVER_SHOW_MORE = "server_show_more";
     const PLAYER_CREATE = "player_create";
     const PLAYER_SHOW_MORE = "player_show_more";
-    const WEBSOCKET_CONNECTION = "websocket_connection";
-    const WEBSOCKET = "websocket";
+    const SERVERTESTER_CREATE = "servertester_create";
+    const SERVERTESTER_CHECK = "servertester_check";
+    const SERVERS = "servers";
+    const SERVERS_MANAGER = "servers_manager";
+    const CORE = "core";
 }

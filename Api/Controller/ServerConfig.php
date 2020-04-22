@@ -147,12 +147,12 @@ class ServerConfig {
                 return;
             }
             $arr['port'] = $vps['port'];
-            if (!isset($vps['path']) || !is_string($vps['path'])) {
+            if (!isset($vps['max_servers']) || !is_integer($vps['max_servers'])) {
                 $this->error([ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON]);
                 $this->loaded = true;
                 return;
             }
-            $arr['path'] = $vps['path'];
+            $arr['max_servers'] = $vps['max_servers'];
             $copy['vps'][] = $arr;
             $this->vps[] = $vps['id'];
         }
