@@ -195,13 +195,13 @@ class ServerController extends AppController {
             $this->response->error($this->response::SERVER_INTERNAL, Error::GLOBAL_UNKNOWN_ERROR);
             return;
         }
-        $clientSecret = $this->generateClientSecret($s['type']);
+        $secret = $this->generateAuthorizationCode(32);
         /**
          * @var $oauth2DataController OAuth2DataController
          */
         $oauth2DataController = $this->oauth_storage;
 		$scope = "server_show_more player_show_more servers";
-        if (!$oauth2DataController->createClient($clientSecret[0], $clientSecret[1], $scope, $s['id'])) {
+        if (!$oauth2DataController->createClient($s['id'], $secret, $scope, $s['id'])) {
             // Error, we delete the server created previously
             $this->serverDataController->deleteServer($s['id']);
 
@@ -217,8 +217,8 @@ class ServerController extends AppController {
             "status" => $s['status'],
             "creationTime" => Core::formatDate($s['creation_time']),
             "auth" => [
-                "client_id" => $clientSecret[0],
-                "client_secret" => $clientSecret[1]
+                "client_id" => $s['id'],
+                "client_secret" => $secret
             ]
         ], $this->response::SUCCESS_CREATED);
         return;
@@ -421,18 +421,6 @@ class ServerController extends AppController {
 
     public function implementedMethods() {
         return ["GET", "POST", "PUT", "DELETE"];
-    }
-
-    /**
-     * Generate a client_id and a client_secret (Used for Java servers)
-     *
-     * @param $id string The id of the server
-     * @return array Client and Secret
-     */
-    function generateClientSecret($id) {
-        $client = "CLIENT_" . $id . "_" . $this->generateAuthorizationCode(32);
-        $secret = "SECRET_" . $id . "_" . $this->generateAuthorizationCode(32);
-        return [$client, $secret];
     }
 
     /**
