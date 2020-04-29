@@ -69,12 +69,8 @@ class ServertesterDataController {
             if ($clientId != null)
                 $id['client_id'] = $clientId;
             $c = $this->db->updateOne(['_id' => $id['id']], ['$set' => ['_id' => $id['id'], 'token' => $id['token']]], ['upsert' => true]);
-            if ($c->getUpsertedCount() != 1)
-                return false;
             return $id;
         } catch (\Exception $ex) {
-            var_dump($ex->getTraceAsString());
-            echo $ex->getMessage();
             return false;
         }
     }

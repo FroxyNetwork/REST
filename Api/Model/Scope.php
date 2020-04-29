@@ -29,6 +29,7 @@ namespace Api\Model;
 
 interface Scope {
     const SERVER_SHOW_MORE = "server_show_more";
+    const SERVER_STATUS_EDIT = "server_status_edit";
     const PLAYER_CREATE = "player_create";
     const PLAYER_SHOW_MORE = "player_show_more";
     const SERVERTESTER_CREATE = "servertester_create";

@@ -57,55 +57,14 @@ class ServerDataController {
                 'id' => (string) $c['_id'],
                 'name' => $c['name'],
                 'type' => $c['type'],
+                'vps' => $c['vps'],
                 'port' => $c['port'],
                 'status' => $c['status'],
                 'creation_time' => $c['creation_time']->toDateTime(),
                 'end_time' => (!isset($c['end_time']) || is_null($c['end_time'])) ? null : $c['end_time']->toDateTime()
             ];
-            if (isset($c['docker'])) {
-                $server['docker'] = [];
-                $server['docker']['server'] = $c['docker']['server'];
-                $server['docker']['id'] = $c['docker']['id'];
-            }
             return $server;
         } catch(\Exception $ex) {
-            return false;
-        }
-    }
-
-    /**
-     * Vérifie si l'id du docker est déjà sauvegardé
-     *
-     * @param $id string L'id du serveur
-     * @return true si l'id du docker est déjà sauvegardé
-     */
-    function checkServerDocker($id) {
-        try {
-            $c = $this->db->findOne(['_id' => new ObjectId($id)]);
-            if (empty($c) || !$c)
-                return false;
-            return (array_key_exists('docker', $c) && array_key_exists('server', $c['docker']) && array_key_exists('id', $c['docker']) && !empty($c['docker']['server']) && !empty($c['docker']['id']));
-        } catch (\Exception $ex) {
-            return false;
-        }
-    }
-
-    /**
-     * @param $id string L'id du serveur
-     * @param $server int L'id du serveur où tourne le docker
-     * @param $docker string L'id du docker
-     * @return bool
-     */
-    function updateServerDocker($id, $server, $docker) {
-        try {
-            $c = $this->db->updateOne(['_id' => new ObjectId($id)], ['$set' => ['docker' => [
-                'server' => $server,
-                'id' => $docker
-            ]]]);
-            if ($c->getModifiedCount() != 1)
-                return false;
-            return true;
-        } catch (\Exception $ex) {
             return false;
         }
     }
@@ -145,16 +104,12 @@ class ServerDataController {
                     'id' => (string) $v['_id'],
                     'name' => $v['name'],
                     'type' => $v['type'],
+                    'vps' => $c['vps'],
                     'port' => $v['port'],
                     'status' => $v['status'],
                     'creation_time' => $v['creation_time']->toDateTime(),
                     'end_time' => (!isset($v['end_time']) || is_null($v['end_time'])) ? null : $v['end_time']->toDateTime()
                 ];
-                if (isset($v['docker'])) {
-                    $arr['docker'] = [];
-                    $arr['docker']['server'] = $v['docker']['server'];
-                    $arr['docker']['id'] = $v['docker']['id'];
-                }
                 $servers[] = $arr;
             }
             return $servers;
@@ -167,20 +122,22 @@ class ServerDataController {
      * @param $name string Le nom du serveur
      * @param $type string Le type de serveur
      * @param $port int Le port du serveur
+     * @param $vps string Le VPS
      *
      * @return array|bool false si erreur, ou le serveur
      */
-    function createServer($name, $type, $port) {
+    function createServer($name, $type, $port, $vps) {
         try {
             $now = new \DateTime();
             $server = [
                 'name' => $name,
                 'type' => $type,
+                'vps' => $vps,
                 'port' => $port,
                 'status' => ServerStatus::STARTING,
                 'creation_time' => $now
             ];
-            $c = $this->db->insertOne(['name' => $server['name'], 'type' => $server['type'], 'port' => $server['port'], 'status' => $server['status'], 'creation_time' => new UTCDateTime($server['creation_time']->getTimestamp() * 1000)]);
+            $c = $this->db->insertOne(['name' => $server['name'], 'type' => $server['type'], 'vps' => $server['vps'], 'port' => $server['port'], 'status' => $server['status'], 'creation_time' => new UTCDateTime($server['creation_time']->getTimestamp() * 1000)]);
             if ($c->getInsertedCount() != 1)
                 return false;
             $server['id'] = (string) $c->getInsertedId();

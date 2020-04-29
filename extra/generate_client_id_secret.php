@@ -66,7 +66,7 @@ echo "db.oauth_clients.insert({
     client_secret: \"".generateAuthorizationCode(32)."\",
     redirect_uri: null,
     grant_types: null,
-    scope: \"server_show_more player_create player_show_more core server_tester\",
+    scope: \"server_show_more server_status_edit player_create player_show_more core server_tester\",
     user_id: null
 });";
 
@@ -75,6 +75,6 @@ echo "db.oauth_clients.insert({
     client_secret: \"".generateAuthorizationCode(32)."\",
     redirect_uri: null,
     grant_types: null,
-    scope: \"server_show_more player_show_more servers_manager server_tester\",
+    scope: \"server_show_more server_status_edit player_show_more servers_manager server_tester\",
     user_id: null
 });";
