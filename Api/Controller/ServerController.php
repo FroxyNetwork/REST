@@ -128,8 +128,7 @@ class ServerController extends AppController {
      * {
         "name" => "koth_1",
         "type" => "KOTH",
-        "port" => 20001,
-        "vps" => "VPS_01"
+        "port" => 20001
      * }
      * @param $param
      */
@@ -138,29 +137,30 @@ class ServerController extends AppController {
          * @var Server $oauth
          */
         $oauth = $this->oauth;
-        /**
-         * @var ServerConfig $serverConfig
-         */
-        $serverConfig = $this->serverConfig;
-        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVERS_MANAGER)) {
+        $accessTokenData = $oauth->getAccessTokenData(Request::createFromGlobals(), null);
+        if (is_null($accessTokenData) || !isset($accessTokenData['scope']) || !$accessTokenData['scope'] || !$oauth->getScopeUtil()->checkScope(Scope::SERVERS_MANAGER, $accessTokenData['scope'])) {
             // Invalid perm
             $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
             return;
         }
+        /**
+         * @var ServerConfig $serverConfig
+         */
+        $serverConfig = $this->serverConfig;
         // TODO Check if the port is already used.
         $data = json_decode($this->request->readInput(), TRUE);
         if (empty($data)) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_DATA_INVALID);
             return;
         }
-        if (!is_array($data) || empty($data['name']) || empty($data['type']) || !isset($data['port']) || empty($data['vps'])) {
+        if (!is_array($data) || empty($data['name']) || empty($data['type']) || !isset($data['port'])) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_DATA_INVALID);
             return;
         }
         $name = $data['name'];
         $type = $data['type'];
         $port = $data['port'];
-        $vps = $data['vps'];
+        $vps = $accessTokenData['client_id'];
         // Check values
         if (!is_string($name)) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_NAME_INVALID);
