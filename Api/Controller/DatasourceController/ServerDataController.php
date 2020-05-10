@@ -104,7 +104,7 @@ class ServerDataController {
                     'id' => (string) $v['_id'],
                     'name' => $v['name'],
                     'type' => $v['type'],
-                    'vps' => $c['vps'],
+                    'vps' => $v['vps'],
                     'port' => $v['port'],
                     'status' => $v['status'],
                     'creation_time' => $v['creation_time']->toDateTime(),
