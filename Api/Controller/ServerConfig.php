@@ -135,18 +135,6 @@ class ServerConfig {
                 return;
             }
             $arr['id'] = $vps['id'];
-            if (!isset($vps['host']) || !is_string($vps['host'])) {
-                $this->error([ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON]);
-                $this->loaded = true;
-                return;
-            }
-            $arr['host'] = $vps['host'];
-            if (!isset($vps['port']) || !is_integer($vps['port'])) {
-                $this->error([ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON]);
-                $this->loaded = true;
-                return;
-            }
-            $arr['port'] = $vps['port'];
             if (!isset($vps['max_servers']) || !is_integer($vps['max_servers'])) {
                 $this->error([ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON]);
                 $this->loaded = true;
