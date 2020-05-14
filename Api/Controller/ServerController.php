@@ -202,7 +202,7 @@ class ServerController extends AppController {
          * @var $oauth2DataController OAuth2DataController
          */
         $oauth2DataController = $this->oauth_storage;
-		$scope = "server_show_more player_show_more servers";
+		$scope = Scope::SERVER_SHOW_MORE." ".Scope::PLAYER_SHOW_MORE." ".Scope::SERVERTESTER_CREATE;
         if (!$oauth2DataController->createClient($s['id'], $secret, $scope, $s['id'])) {
             // Error, we delete the server created previously
             $this->serverDataController->deleteServer($s['id']);
