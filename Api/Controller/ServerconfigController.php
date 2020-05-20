@@ -52,12 +52,12 @@ class ServerconfigController extends AppController {
             if (!$parsedJson) {
                 // Json error
                 $this->response->error($serverConfig->getErrorType()[0], $serverConfig->getErrorType()[1]);
-                exit;
+                return;
             }
             if (!$serverConfig->exist($param)) {
                 // Json error
                 $this->response->error(ResponseController::ERROR_NOTFOUND, Error::SERVER_TYPE_NOT_FOUND);
-                exit;
+                return;
             }
             $this->response->ok(["types" => [$serverConfig->get($param)]]);
         } else {
@@ -66,7 +66,7 @@ class ServerconfigController extends AppController {
             if (!$parsedJson) {
                 // Json error
                 $this->response->error($serverConfig->getErrorType()[0], $serverConfig->getErrorType()[1]);
-                exit;
+                return;
             }
             $this->response->ok($parsedJson);
         }
