@@ -34,6 +34,7 @@ use Api\Model\Scope;
 use OAuth2\Request;
 use OAuth2\Server;
 use Web\Controller\AppController;
+use Web\Core\Core;
 use Web\Core\Error;
 
 class PlayerController extends AppController {
@@ -48,10 +49,10 @@ class PlayerController extends AppController {
      */
     private $serverDataController;
 
-    public function __construct() {
-        parent::__construct();
-        $this->playerDataController = $this->core->getDataController("Player");
-        $this->serverDataController = $this->core->getDataController("Server");
+    public function __construct(Core $core) {
+        parent::__construct($core);
+        $this->playerDataController = $core->getDataController("Player");
+        $this->serverDataController = $core->getDataController("Server");
     }
 
     public function get($param) {

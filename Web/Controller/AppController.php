@@ -46,7 +46,8 @@ abstract class AppController {
      */
     public $response;
 
-    public function __construct() {
+    public function __construct(Core $core) {
+        $this->core = $core;
     }
 
     public function get($param) {

@@ -34,6 +34,7 @@ use Api\Model\ServerStatus;
 use OAuth2\Request;
 use OAuth2\Server;
 use Web\Controller\AppController;
+use Web\Core\Core;
 use Web\Core\Error;
 
 class ServerController extends AppController {
@@ -43,8 +44,8 @@ class ServerController extends AppController {
      */
     private $serverDataController;
 
-    public function __construct() {
-        parent::__construct();
+    public function __construct(Core $core) {
+        parent::__construct($core);
         $this->serverDataController = $this->core->getDataController("Server");
     }
 
@@ -112,8 +113,8 @@ class ServerController extends AppController {
                 if (isset($server['end_time']))
                     $d["endTime"] = $this->core->formatDate($server['end_time']);
                 if ($showMore) {
-                    $response['vps'] = $server['vps'];
-                    $response['port'] = $server['port'];
+                    $d['vps'] = $server['vps'];
+                    $d['port'] = $server['port'];
                 }
                 $data['servers'][] = $d;
             }

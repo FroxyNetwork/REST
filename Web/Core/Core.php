@@ -101,7 +101,7 @@ class Core {
         }
         // Initialisation des controleurs
         $this->_requestController = new RequestController($this);
-        $this->_responseController = new ResponseController();
+        $this->_responseController = new ResponseController($this);
         // Load config file
         try {
             $this->config = parse_ini_file(API_DIR.DS."Config".DS."config.ini");
@@ -233,9 +233,8 @@ class Core {
          * @var AppController $impl
          */
         $class = "\\Api\\Controller\\".$file;
-        $impl = new $class($this->database);
+        $impl = new $class($this);
         // Ajout des autres controleurs
-        $impl->core = $this;
         $impl->request = $this->_requestController;
         $impl->response = $this->_responseController;
         foreach ($this->list as $key => $value)

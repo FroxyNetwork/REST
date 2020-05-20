@@ -27,9 +27,14 @@ namespace Api\Controller;
 
 use Web\Controller\AppController;
 use Web\Controller\ResponseController;
+use Web\Core\Core;
 use Web\Core\Error;
 
 class ServerconfigController extends AppController {
+
+    public function __construct(Core $core) {
+        parent::__construct($core);
+    }
 
     public function get($param) {
         /**

@@ -27,6 +27,7 @@
 
 namespace Web\Controller;
 
+use Web\Core\Core;
 use Web\Core\Error;
 
 class ResponseController {
@@ -54,8 +55,8 @@ class ResponseController {
      */
     private $appController;
 
-    public function __construct() {
-        $this->appController = new VoidAppController();
+    public function __construct(Core $core) {
+        $this->appController = new VoidAppController($core);
     }
 
     /**

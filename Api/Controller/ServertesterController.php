@@ -33,6 +33,7 @@ use Api\Model\Scope;
 use OAuth2\Request;
 use OAuth2\Server;
 use Web\Controller\AppController;
+use Web\Core\Core;
 use Web\Core\Error;
 
 class ServertesterController extends AppController {
@@ -47,8 +48,8 @@ class ServertesterController extends AppController {
      */
     private $servertesterDataController;
 
-    public function __construct() {
-        parent::__construct();
+    public function __construct(Core $core) {
+        parent::__construct($core);
         $this->serverDataController = $this->core->getDataController("Server");
         $this->servertesterDataController = $this->core->getDataController("Servertester");
     }

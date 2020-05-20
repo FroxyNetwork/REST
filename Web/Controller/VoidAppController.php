@@ -27,10 +27,16 @@
 
 namespace Web\Controller;
 
+use Web\Core\Core;
+
 /**
  * Une classe "Vide"
  */
 class VoidAppController extends AppController {
+
+    public function __construct(Core $core) {
+        parent::__construct($core);
+    }
 
     public function implementedMethods() {
         return [];
