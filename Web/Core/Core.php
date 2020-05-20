@@ -106,19 +106,19 @@ class Core {
             if (!self::$config) {
                 // config.ini file error
                 self::$_responseController->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_CONFIG);
-                exit;
+                return;
             }
         }
         if (!isset(self::$config['mongodb']) || !isset(self::$config['mongodb_database'])) {
             // config.ini file error
             self::$_responseController->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_CONFIG_MONGODB);
-            exit;
+            return;
         }
         try {
             self::$database = new DBController(self::$config['mongodb'], self::$config['mongodb_database']);
         } catch (\Exception $ex) {
             self::$_responseController->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_DATABASE);
-            exit;
+            return;
         }
         self::$list = array();
         // Including Routage
