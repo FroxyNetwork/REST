@@ -27,7 +27,14 @@
 
 namespace Web\Controller;
 
+use Web\Core\Core;
+
 abstract class AppController {
+
+    /**
+     * @var Core The Core
+     */
+    public $core;
 
     /**
      * @var RequestController The Request Controller

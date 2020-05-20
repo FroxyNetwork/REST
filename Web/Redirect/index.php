@@ -29,4 +29,5 @@ session_start();
 // Bootstrap
 include __DIR__.DIRECTORY_SEPARATOR."Bootstrap.php";
 // Core
-\Web\Core\Core::init();
+$core = new \Web\Core\Core();
+$core->init();

@@ -103,7 +103,7 @@ class ResponseController {
      * @param int $code Le code de retour
      */
     public function ok($data = null, $code = 200) {
-        if (is_null($data)) {
+        if (!$data) {
             // Data is null, so it'll be an empty object (to return "{}")
             $data = new \stdClass();
         }
@@ -174,7 +174,7 @@ class ResponseController {
         header("Access-Control-Allow-Headers: Origin, Content-Type");
 
         // Show nothing
-        if (is_null($data))
+        if (!$data)
             return;
 
         header('Content-Type:application/json');

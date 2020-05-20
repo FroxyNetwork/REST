@@ -61,7 +61,7 @@ class ServerDataController {
                 'port' => $c['port'],
                 'status' => $c['status'],
                 'creation_time' => $c['creation_time']->toDateTime(),
-                'end_time' => (!isset($c['end_time']) || is_null($c['end_time'])) ? null : $c['end_time']->toDateTime()
+                'end_time' => (!isset($c['end_time'])) ? null : $c['end_time']->toDateTime()
             ];
             return $server;
         } catch(\Exception $ex) {
@@ -108,7 +108,7 @@ class ServerDataController {
                     'port' => $v['port'],
                     'status' => $v['status'],
                     'creation_time' => $v['creation_time']->toDateTime(),
-                    'end_time' => (!isset($v['end_time']) || is_null($v['end_time'])) ? null : $v['end_time']->toDateTime()
+                    'end_time' => (!isset($v['end_time'])) ? null : $v['end_time']->toDateTime()
                 ];
                 $servers[] = $arr;
             }

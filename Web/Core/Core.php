@@ -47,29 +47,34 @@ class Core {
     /**
      * @var RequestController Le controleur de requêtes
      */
-    private static $_requestController;
+    private $_requestController;
 
     /**
      * @var ResponseController Le controleur de réponse
      */
-    private static $_responseController;
+    private $_responseController;
 
     /**
      * @var DBController Le controleur de données
      */
-    private static $database;
+    private $database;
 
     /**
      * @var array La configuration
      */
-    private static $config;
+    private $config;
 
     /**
      * @var array Liste des variables à ajouter aux controleurs
      */
-    private static $list = [];
+    private $list = [];
 
-    public static function init() {
+    private $init = false;
+
+    public function init() {
+        if ($this->init)
+            return;
+        $this->init = true;
         // Disable error reporting
         //error_reporting(0);
         // Fix HTTP_AUTHORIZATION
@@ -95,39 +100,39 @@ class Core {
             }
         }
         // Initialisation des controleurs
-        self::$_requestController = new RequestController();
-        self::$_responseController = new ResponseController();
+        $this->_requestController = new RequestController($this);
+        $this->_responseController = new ResponseController();
         // Load config file
         try {
-            self::$config = parse_ini_file(API_DIR.DS."Config".DS."config.ini");
+            $this->config = parse_ini_file(API_DIR.DS."Config".DS."config.ini");
         } catch (\Exception $ex) {
-            self::$config = false;
+            $this->config = false;
         } finally {
-            if (!self::$config) {
+            if (!$this->config) {
                 // config.ini file error
-                self::$_responseController->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_CONFIG);
+                $this->_responseController->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_CONFIG);
                 return;
             }
         }
-        if (!isset(self::$config['mongodb']) || !isset(self::$config['mongodb_database'])) {
+        if (!isset($this->config['mongodb']) || !isset($this->config['mongodb_database'])) {
             // config.ini file error
-            self::$_responseController->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_CONFIG_MONGODB);
+            $this->_responseController->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_CONFIG_MONGODB);
             return;
         }
         try {
-            self::$database = new DBController(self::$config['mongodb'], self::$config['mongodb_database']);
+            $this->database = new DBController($this->config['mongodb'], $this->config['mongodb_database']);
         } catch (\Exception $ex) {
-            self::$_responseController->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_DATABASE);
+            $this->_responseController->error(ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_DATABASE);
             return;
         }
-        self::$list = array();
+        $this->list = array();
         // Including Routage
-        Route::configure(isset(self::$config['default_route']) ? self::$config['default_route'] : "/");
+        Route::configure(isset($this->config['default_route']) ? $this->config['default_route'] : "/");
         include API_DIR.DS."Config".DS."Routage.php";
-        $path = self::$_requestController->getPath();
+        $path = $this->_requestController->getPath();
         $route = Route::getRoute($path);
-        if (is_null($route) || !is_array($route) || sizeof($route) == 0) {
-            self::$_responseController->error(self::$_responseController::ERROR_NOTFOUND, Error::ROUTE_NOT_FOUND);
+        if (!$route || !is_array($route) || sizeof($route) == 0) {
+            $this->_responseController->error($this->_responseController::ERROR_NOTFOUND, Error::ROUTE_NOT_FOUND);
             return;
         }
         $controller = $route['controller'];
@@ -135,17 +140,17 @@ class Core {
         /**
          * @var $webController WebController
          */
-        $webController = self::getAppController("Web");
-        $webController->onLoad(self::$list, self::$database->getDatabase());
+        $webController = $this->getAppController("Web");
+        $webController->onLoad($this->list, $this->database->getDatabase());
         try {
-            $appController = self::getAppController($controller);
-            self::$_responseController->setAppController($appController);
+            $appController = $this->getAppController($controller);
+            $this->_responseController->setAppController($appController);
             if ($appController == null) {
                 // Erreur
-                self::$_responseController->error(self::$_responseController::ERROR_NOTFOUND, Error::GLOBAL_CONTROLLER_NOT_FOUND);
+                $this->_responseController->error($this->_responseController::ERROR_NOTFOUND, Error::GLOBAL_CONTROLLER_NOT_FOUND);
                 return;
             }
-            switch (self::$_requestController->getMethod()) {
+            switch ($this->_requestController->getMethod()) {
                 case "GET":
                     $appController->get($params);
                     break;
@@ -171,34 +176,34 @@ class Core {
 
         } catch (\Exception $ex) {
             // Erreur
-            self::$_responseController->error(self::$_responseController::SERVER_INTERNAL, Error::GLOBAL_UNKNOWN_ERROR);
+            $this->_responseController->error($this->_responseController::SERVER_INTERNAL, Error::GLOBAL_UNKNOWN_ERROR);
         }
 
         //$appController->$action($params);
         $webController->onUnload();
-        self::$database->close();
+        $this->database->close();
     }
 
     /**
      * Récupère l'emplacement du fichier spécifié
      * Exemples:
-     * Core::path(Core::MODELS, "User");
+     * $this->core->path(Core::MODELS, "User");
      *  ==> <...>/api/model/UserModel.php
-     * Core::path(Core::CONTROLLERS, "Auth");
+     * $this->core->path(Core::CONTROLLERS, "Auth");
      *  ==> <...>/api/controller/AuthController.php
-     * Core::path(Core::DATASOURCES, "User");
+     * $this->core->path(Core::DATASOURCES, "User");
      *  ==> <...>/api/controller/DatasourceController/UserDataController.php
-     * Core::path("TypeIncorrect", "User");
-     *  ==> <...>/api/User/DatasourceController/UserDataController.php
+     * $this->core->path("TypeIncorrect", "User");
+     *  ==> <...>/api/TypeIncorrect/User.php
      *
      * @param string $type Le type (MODELS, CONTROLLERS, DATASOURCES)
      * @param string $name Le nom du fichier
      * @return string The path of the file.
      */
-    public static function path($type, $name) {
-        if (isset(self::_dir[$type]) && !empty(self::_dir[$type][0]))
-            return API_DIR.DS.self::_dir[$type][0].DS.self::fileName($type, $name).".php";
-        return API_DIR.DS.$type.DS.self::fileName($type, $name).".php";
+    public function path($type, $name) {
+        if (isset($this->_dir[$type]) && !empty(self::_dir[$type][0]))
+            return API_DIR.DS.self::_dir[$type][0].DS.$this->fileName($type, $name).".php";
+        return API_DIR.DS.$type.DS.$this->fileName($type, $name).".php";
     }
 
     /**
@@ -208,7 +213,7 @@ class Core {
      * @param string $name Le nom du fichier
      * @return string Le nom du fichier (sans .php)
      */
-    public static function fileName($type, $name) {
+    public function fileName($type, $name) {
         if (!is_int($type) || empty($name))
             return ucfirst(strtolower($name));
         if (!empty(self::_dir[$type][0]))
@@ -222,17 +227,18 @@ class Core {
      * @param string $name Le nom du controleur
      * @return AppController Le controleur spécifique
      */
-    public static function getAppController($name) {
-        $file = self::fileName(self::CONTROLLERS, $name);
+    public function getAppController($name) {
+        $file = $this->fileName(self::CONTROLLERS, $name);
         /**
          * @var AppController $impl
          */
         $class = "\\Api\\Controller\\".$file;
-        $impl = new $class(self::$database);
+        $impl = new $class($this->database);
         // Ajout des autres controleurs
-        $impl->request = self::$_requestController;
-        $impl->response = self::$_responseController;
-        foreach (self::$list as $key => $value)
+        $impl->core = $this;
+        $impl->request = $this->_requestController;
+        $impl->response = $this->_responseController;
+        foreach ($this->list as $key => $value)
             $impl->$key = $value;
         return $impl;
     }
@@ -242,24 +248,24 @@ class Core {
      * @param string $name Le nom de la source de données
      * @return mixed La source de données spécifique
      */
-    public static function getDataController($name) {
-        $file = self::fileName(self::DATASOURCES, $name);
+    public function getDataController($name) {
+        $file = $this->fileName(self::DATASOURCES, $name);
         $class = "\\Api\\Controller\\DatasourceController\\".$file;
-        if (self::$database != null)
-            $impl = new $class(self::$database);
+        if ($this->database != null)
+            $impl = new $class($this->database);
         else
             $impl = new $class(null);
         return $impl;
     }
 
-    static function startsWith($haystack, $needle) {
+    public function startsWith($haystack, $needle) {
         if ($haystack === null)
             return $needle === null;
         $length = strlen($needle);
         return (substr($haystack, 0, $length) === $needle);
     }
 
-    static function endsWith($haystack, $needle) {
+    public function endsWith($haystack, $needle) {
         if ($haystack === null)
             return $needle === null;
         if ($needle === null)
@@ -274,7 +280,7 @@ class Core {
      * @param $dateTime \DateTime
      * @return string Formated date
      */
-    static function formatDate($dateTime) {
+    public function formatDate($dateTime) {
         if ($dateTime === null)
             return "";
         return $dateTime->format('Y-m-d H:i:s');
@@ -286,14 +292,36 @@ class Core {
      * @param $input ? The input
      * @return bool true if the input is an integer, or a string that represent an integer
      */
-    static function isInteger($input) {
-        return ctype_digit(strval($input));
+    public function isInteger($input) {
+        return ctype_digit((string) $input);
     }
 
     /**
      * @param $database DBController
      */
-    static function setDatabase($database) {
-        self::$database = $database;
+    public function setDatabase($database) {
+        $this->database = $database;
+    }
+
+    /**
+     * @see https://github.com/bshaffer/oauth2-server-php/blob/master/src/OAuth2/ResponseType/AuthorizationCode.php#L84
+     *
+     * @param $ln int The size of the random data
+     *
+     * @return bool|string
+     */
+    function generateAuthorizationCode($ln) {
+        if (function_exists('openssl_random_pseudo_bytes')) {
+            $randomData = openssl_random_pseudo_bytes(64);
+        } elseif (function_exists('random_bytes')) {
+            $randomData = random_bytes(64);
+        } elseif (function_exists('mcrypt_create_iv')) {
+            $randomData = mcrypt_create_iv(64, MCRYPT_DEV_URANDOM);
+        } elseif (@file_exists('/dev/urandom')) { // Get 64 bytes of random data
+            $randomData = file_get_contents('/dev/urandom', false, null, 0, 64) . uniqid(mt_rand(), true);
+        } else {
+            $randomData = mt_rand() . mt_rand() . mt_rand() . mt_rand() . microtime(true) . uniqid(mt_rand(), true);
+        }
+        return substr(hash('sha512', $randomData), 0, $ln);
     }
 }

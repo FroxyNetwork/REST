@@ -33,7 +33,6 @@ use OAuth2\GrantType\ClientCredentials;
 use OAuth2\GrantType\RefreshToken;
 use OAuth2\Server;
 use Web\Controller\AppController;
-use Web\Core\Core;
 
 class WebController extends AppController {
     /**

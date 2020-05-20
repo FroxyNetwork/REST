@@ -70,7 +70,7 @@ class OAuth2DataController extends NewMongo {
     public function getServer($id) {
         $result = $this->collection('user_table')->findOne(['id' => $id]);
 
-        return is_null($result) ? false : $result;
+        return !$result ? false : $result;
     }
 
     /**

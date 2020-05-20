@@ -27,14 +27,12 @@
 
 namespace Api\Controller;
 
-use Api\Controller\DatasourceController\OAuth2DataController;
 use Api\Controller\DatasourceController\ServerDataController;
 use Api\Controller\DatasourceController\ServertesterDataController;
 use Api\Model\Scope;
 use OAuth2\Request;
 use OAuth2\Server;
 use Web\Controller\AppController;
-use Web\Core\Core;
 use Web\Core\Error;
 
 class ServertesterController extends AppController {
@@ -51,8 +49,8 @@ class ServertesterController extends AppController {
 
     public function __construct() {
         parent::__construct();
-        $this->serverDataController = Core::getDataController("Server");
-        $this->servertesterDataController = Core::getDataController("Servertester");
+        $this->serverDataController = $this->core->getDataController("Server");
+        $this->servertesterDataController = $this->core->getDataController("Servertester");
     }
 
     /**
@@ -67,7 +65,7 @@ class ServertesterController extends AppController {
         $oauth = $this->oauth;
 
         // Test if there is an id or not
-        if (Core::startsWith($param, "/"))
+        if ($this->core->startsWith($param, "/"))
             $param = substr($param, 1);
         $ln = strlen($param);
         // If there is not id, returns a Bad Request error
@@ -121,13 +119,13 @@ class ServertesterController extends AppController {
          */
         $oauth = $this->oauth;
         $accessTokenData = $oauth->getAccessTokenData(Request::createFromGlobals(), null);
-        if (is_null($accessTokenData) || !isset($accessTokenData['scope']) || !$accessTokenData['scope'] || !$oauth->getScopeUtil()->checkScope(Scope::SERVERTESTER_CREATE, $accessTokenData['scope'])) {
+        if (!$accessTokenData || !isset($accessTokenData['scope']) || !$accessTokenData['scope'] || !$oauth->getScopeUtil()->checkScope(Scope::SERVERTESTER_CREATE, $accessTokenData['scope'])) {
             // Invalid perm
             $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
             return;
         }
         // Generate token
-        $token = $this->generateAuthorizationCode(32);
+        $token = $this->core->generateAuthorizationCode(32);
         // Save token
         if (!$this->servertesterDataController->create($accessTokenData['client_id'], $token)) {
             // Unknown error
@@ -145,28 +143,5 @@ class ServertesterController extends AppController {
 
     public function implementedMethods() {
         return ["GET", "POST"];
-    }
-
-    /**
-     * @see https://github.com/bshaffer/oauth2-server-php/blob/master/src/OAuth2/ResponseType/AuthorizationCode.php#L84
-     *
-     * @param $ln int The size of the random data
-     *
-     * @return bool|string
-     * @throws \Exception
-     */
-    function generateAuthorizationCode($ln) {
-        if (function_exists('openssl_random_pseudo_bytes')) {
-            $randomData = openssl_random_pseudo_bytes(64);
-        } elseif (function_exists('random_bytes')) {
-            $randomData = random_bytes(64);
-        } elseif (function_exists('mcrypt_create_iv')) {
-            $randomData = mcrypt_create_iv(64, MCRYPT_DEV_URANDOM);
-        } elseif (@file_exists('/dev/urandom')) { // Get 64 bytes of random data
-            $randomData = file_get_contents('/dev/urandom', false, null, 0, 64) . uniqid(mt_rand(), true);
-        } else {
-            $randomData = mt_rand() . mt_rand() . mt_rand() . mt_rand() . microtime(true) . uniqid(mt_rand(), true);
-        }
-        return substr(hash('sha512', $randomData), 0, $ln);
     }
 }

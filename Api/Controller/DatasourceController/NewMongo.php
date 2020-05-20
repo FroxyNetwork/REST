@@ -110,7 +110,7 @@ class NewMongo implements
     {
         $result = $this->collection('client_table')->findOne(array('client_id' => $client_id));
 
-        return is_null($result) ? false : $result;
+        return !$result ? false : $result;
     }
 
     public function setClientDetails($client_id, $client_secret = null, $redirect_uri = null, $grant_types = null, $scope = null, $user_id = null)
@@ -159,7 +159,7 @@ class NewMongo implements
     {
         $token = $this->collection('access_token_table')->findOne(array('access_token' => $access_token));
 
-        return is_null($token) ? false : $token;
+        return !$token ? false : $token;
     }
 
     public function setAccessToken($access_token, $client_id, $user_id, $expires, $scope = null)
@@ -204,7 +204,7 @@ class NewMongo implements
     {
         $code = $this->collection('code_table')->findOne(array('authorization_code' => $code));
 
-        return is_null($code) ? false : $code;
+        return !$code ? false : $code;
     }
 
     public function setAuthorizationCode($code, $client_id, $user_id, $redirect_uri, $expires, $scope = null, $id_token = null)
@@ -269,7 +269,7 @@ class NewMongo implements
     {
         $token = $this->collection('refresh_token_table')->findOne(array('refresh_token' => $refresh_token));
 
-        return is_null($token) ? false : $token;
+        return !$token ? false : $token;
     }
 
     public function setRefreshToken($refresh_token, $client_id, $user_id, $expires, $scope = null)
@@ -305,7 +305,7 @@ class NewMongo implements
     {
         $result = $this->collection('user_table')->findOne(array('username' => $username));
 
-        return is_null($result) ? false : $result;
+        return !$result ? false : $result;
     }
 
     public function setUser($username, $password, $firstName = null, $lastName = null)
@@ -339,7 +339,7 @@ class NewMongo implements
             'subject' => $subject
         ));
 
-        return is_null($result) ? false : $result['key'];
+        return !$result ? false : $result['key'];
     }
 
     public function getClientScope($client_id)
@@ -381,7 +381,7 @@ class NewMongo implements
         $result = $this->collection('key_table')->findOne(array(
             'client_id' => null
         ));
-        return is_null($result) ? false : $result['public_key'];
+        return !$result ? false : $result['public_key'];
     }
 
     public function getPrivateKey($client_id = null)
@@ -398,7 +398,7 @@ class NewMongo implements
         $result = $this->collection('key_table')->findOne(array(
             'client_id' => null
         ));
-        return is_null($result) ? false : $result['private_key'];
+        return !$result ? false : $result['private_key'];
     }
 
     public function getEncryptionAlgorithm($client_id = null)
@@ -415,7 +415,7 @@ class NewMongo implements
         $result = $this->collection('key_table')->findOne(array(
             'client_id' => null
         ));
-        return is_null($result) ? 'RS256' : $result['encryption_algorithm'];
+        return !$result ? 'RS256' : $result['encryption_algorithm'];
     }
 
     /**

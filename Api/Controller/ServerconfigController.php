@@ -27,7 +27,6 @@ namespace Api\Controller;
 
 use Web\Controller\AppController;
 use Web\Controller\ResponseController;
-use Web\Core\Core;
 use Web\Core\Error;
 
 class ServerconfigController extends AppController {
@@ -37,7 +36,7 @@ class ServerconfigController extends AppController {
          * @var ServerConfig $serverConfig
          */
         $serverConfig = $this->serverConfig;
-        if (Core::startsWith($param, "/"))
+        if ($this->core->startsWith($param, "/"))
             $param = substr($param, 1);
         $ln = strlen($param);
         if ($ln >= 1) {

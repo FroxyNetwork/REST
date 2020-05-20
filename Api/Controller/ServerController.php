@@ -31,11 +31,9 @@ use Api\Controller\DatasourceController\OAuth2DataController;
 use Api\Controller\DatasourceController\ServerDataController;
 use Api\Model\Scope;
 use Api\Model\ServerStatus;
-use http\Env\Response;
 use OAuth2\Request;
 use OAuth2\Server;
 use Web\Controller\AppController;
-use Web\Core\Core;
 use Web\Core\Error;
 
 class ServerController extends AppController {
@@ -47,7 +45,7 @@ class ServerController extends AppController {
 
     public function __construct() {
         parent::__construct();
-        $this->serverDataController = Core::getDataController("Server");
+        $this->serverDataController = $this->core->getDataController("Server");
     }
 
     /**
@@ -59,7 +57,7 @@ class ServerController extends AppController {
          * @var Server $oauth
          */
         $oauth = $this->oauth;
-        if (Core::startsWith($param, "/"))
+        if ($this->core->startsWith($param, "/"))
             $param = substr($param, 1);
         $ln = strlen($param);
         if ($ln >= 1) {
@@ -80,10 +78,10 @@ class ServerController extends AppController {
                 "name" => $server['name'],
                 "type" => $server['type'],
                 "status" => $server['status'],
-                "creationTime" => Core::formatDate($server['creation_time'])
+                "creationTime" => $this->core->formatDate($server['creation_time'])
             ];
-            if (isset($server['end_time']) && !is_null($server['end_time']))
-                $response['endTime'] = Core::formatDate($server['end_time']);
+            if (isset($server['end_time']))
+                $response['endTime'] = $this->core->formatDate($server['end_time']);
             if ($showMore) {
                 $response['vps'] = $server['vps'];
                 $response['port'] = $server['port'];
@@ -109,10 +107,10 @@ class ServerController extends AppController {
                     "name" => $server['name'],
                     "type" => $server['type'],
                     "status" => $server['status'],
-                    "creationTime" => Core::formatDate($server['creation_time'])
+                    "creationTime" => $this->core->formatDate($server['creation_time'])
                 ];
-                if (isset($server['end_time']) && !is_null($server['end_time']))
-                    $d["endTime"] = Core::formatDate($server['end_time']);
+                if (isset($server['end_time']))
+                    $d["endTime"] = $this->core->formatDate($server['end_time']);
                 if ($showMore) {
                     $response['vps'] = $server['vps'];
                     $response['port'] = $server['port'];
@@ -138,7 +136,7 @@ class ServerController extends AppController {
          */
         $oauth = $this->oauth;
         $accessTokenData = $oauth->getAccessTokenData(Request::createFromGlobals(), null);
-        if (is_null($accessTokenData) || !isset($accessTokenData['scope']) || !$accessTokenData['scope'] || !$oauth->getScopeUtil()->checkScope(Scope::SERVERS_MANAGER, $accessTokenData['scope'])) {
+        if (!$accessTokenData || !isset($accessTokenData['scope']) || !$accessTokenData['scope'] || !$oauth->getScopeUtil()->checkScope(Scope::SERVERS_MANAGER, $accessTokenData['scope'])) {
             // Invalid perm
             $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
             return;
@@ -178,11 +176,11 @@ class ServerController extends AppController {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TYPE_LENGTH);
             return;
         }
-        if (!Core::isInteger($port)) {
+        if (!$this->core->isInteger($port)) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_PORT_INVALID);
             return;
         }
-        $port = intval($port);
+        $port = (int) $port;
         if ($port <= 0 || $port >= 65536) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_PORT_INVALID);
             return;
@@ -197,7 +195,7 @@ class ServerController extends AppController {
             $this->response->error($this->response::SERVER_INTERNAL, Error::GLOBAL_UNKNOWN_ERROR);
             return;
         }
-        $secret = $this->generateAuthorizationCode(32);
+        $secret = $this->core->generateAuthorizationCode(32);
         /**
          * @var $oauth2DataController OAuth2DataController
          */
@@ -218,7 +216,7 @@ class ServerController extends AppController {
             "vps" => $s['vps'],
             "port" => $s['port'],
             "status" => $s['status'],
-            "creationTime" => Core::formatDate($s['creation_time']),
+            "creationTime" => $this->core->formatDate($s['creation_time']),
             "auth" => [
                 "client_id" => $s['id'],
                 "client_secret" => $secret
@@ -248,7 +246,7 @@ class ServerController extends AppController {
             $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
             return;
         }
-        if (Core::startsWith($param, "/"))
+        if ($this->core->startsWith($param, "/"))
             $param = substr($param, 1);
         $ln = strlen($param);
         if ($ln <= 0) {
@@ -304,7 +302,7 @@ class ServerController extends AppController {
             "vps" => $s['vps'],
             "port" => $s['port'],
             "status" => $s['status'],
-            "creationTime" => Core::formatDate($s['creation_time'])
+            "creationTime" => $this->core->formatDate($s['creation_time'])
         ], $this->response::SUCCESS_OK);
     }
 
@@ -318,7 +316,7 @@ class ServerController extends AppController {
             $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
             return;
         }
-        if (Core::startsWith($param, "/"))
+        if ($this->core->startsWith($param, "/"))
             $param = substr($param, 1);
         $ln = strlen($param);
         if ($ln <= 0) {
@@ -364,27 +362,5 @@ class ServerController extends AppController {
 
     public function implementedMethods() {
         return ["GET", "POST", "PUT", "DELETE"];
-    }
-
-    /**
-     * @see https://github.com/bshaffer/oauth2-server-php/blob/master/src/OAuth2/ResponseType/AuthorizationCode.php#L84
-     *
-     * @param $ln int The size of the random data
-     *
-     * @return bool|string
-     */
-    function generateAuthorizationCode($ln) {
-        if (function_exists('openssl_random_pseudo_bytes')) {
-            $randomData = openssl_random_pseudo_bytes(64);
-        } elseif (function_exists('random_bytes')) {
-            $randomData = random_bytes(64);
-        } elseif (function_exists('mcrypt_create_iv')) {
-            $randomData = mcrypt_create_iv(64, MCRYPT_DEV_URANDOM);
-        } elseif (@file_exists('/dev/urandom')) { // Get 64 bytes of random data
-            $randomData = file_get_contents('/dev/urandom', false, null, 0, 64) . uniqid(mt_rand(), true);
-        } else {
-            $randomData = mt_rand() . mt_rand() . mt_rand() . mt_rand() . microtime(true) . uniqid(mt_rand(), true);
-        }
-        return substr(hash('sha512', $randomData), 0, $ln);
     }
 }
