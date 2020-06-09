@@ -25,6 +25,8 @@
 
 namespace Api\Controller;
 
+use Api\Model\Scope;
+use OAuth2\Request;
 use Web\Controller\AppController;
 use Web\Controller\ResponseController;
 use Web\Core\Core;
@@ -37,6 +39,15 @@ class ServerconfigController extends AppController {
     }
 
     public function get($param) {
+        /**
+         * @var Server $oauth
+         */
+        $oauth = $this->oauth;
+        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_CONFIG)) {
+            // Invalid perm
+            $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
+            return;
+        }
         /**
          * @var ServerConfig $serverConfig
          */
