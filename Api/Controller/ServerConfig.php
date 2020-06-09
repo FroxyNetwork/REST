@@ -119,11 +119,37 @@ class ServerConfig {
                             return;
                         }
                     }
+					
+					if (!isset($variant['min']) || !is_integer($variant['min'])) {
+						$this->error([ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON]);
+						$this->loaded = true;
+						return;
+					}
+					if (!isset($variant['max']) || !is_integer($variant['max'])) {
+						$this->error([ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON]);
+						$this->loaded = true;
+						return;
+					}
+					
                     $v['database'] = $variant['database'];
+					$v['min'] = $variant['min'];
+					$v['max'] = $variant['max'];
                     $var[] = $v;
                 }
                 $arr['variants'] = $var;
             }
+			if (!isset($type['min']) || !is_integer($type['min'])) {
+				$this->error([ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON]);
+				$this->loaded = true;
+				return;
+			}
+			if (!isset($type['max']) || !is_integer($type['max'])) {
+				$this->error([ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON]);
+				$this->loaded = true;
+				return;
+			}
+			$arr['min'] = $type['min'];
+			$arr['max'] = $type['max'];
             $copy['types'][] = $arr;
         }
 
@@ -141,6 +167,38 @@ class ServerConfig {
                 return;
             }
             $arr['max_servers'] = $vps['max_servers'];
+			// config
+			if (isset($vps['config']) && !is_array($vps['config'])) {
+				$this->error([ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON]);
+				$this->loaded = true;
+				return;
+			}
+			$arr['config'] = [];
+			foreach ($vps['config'] as $j => $config) {
+				$c = [];
+				
+				if (isset($config['type']) && !is_string($config['type'])) {
+					$this->error([ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON]);
+					$this->loaded = true;
+					return;
+				}
+				if (isset($config['min']) && !is_integer($config['min'])) {
+					$this->error([ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON]);
+					$this->loaded = true;
+					return;
+				}
+				if (isset($config['max']) && !is_integer($config['max'])) {
+					$this->error([ResponseController::SERVER_INTERNAL, Error::INTERNAL_SERVER_JSON]);
+					$this->loaded = true;
+					return;
+				}
+				$c['type'] = $config['type'];
+				$c['min'] = $config['min'];
+				$c['max'] = $config['max'];
+				
+				$arr['config'][] = $c;
+			}
+			
             $copy['vps'][] = $arr;
             $this->vps[] = $vps['id'];
         }
