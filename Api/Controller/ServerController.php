@@ -85,6 +85,7 @@ class ServerController extends AppController {
                 $response['endTime'] = $this->core->formatDate($server['end_time']);
             if ($showMore) {
                 $response['vps'] = $server['vps'];
+                $response['ip'] = $server['ip'];
                 $response['port'] = $server['port'];
             }
             $this->response->ok($response);
@@ -114,6 +115,7 @@ class ServerController extends AppController {
                     $d["endTime"] = $this->core->formatDate($server['end_time']);
                 if ($showMore) {
                     $d['vps'] = $server['vps'];
+					$d['ip'] = $server['ip'];
                     $d['port'] = $server['port'];
                 }
                 $data['servers'][] = $d;
@@ -127,6 +129,7 @@ class ServerController extends AppController {
      * {
         "name" => "koth_1",
         "type" => "KOTH",
+		"ip" => "127.0.0.1",
         "port" => 20001
      * }
      * @param $param
@@ -152,12 +155,13 @@ class ServerController extends AppController {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_DATA_INVALID);
             return;
         }
-        if (!is_array($data) || empty($data['name']) || empty($data['type']) || !isset($data['port'])) {
+        if (!is_array($data) || empty($data['name']) || empty($data['type']) || empty($data['ip']) || !isset($data['port'])) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_DATA_INVALID);
             return;
         }
         $name = $data['name'];
         $type = $data['type'];
+		$ip = $data['ip'];
         $port = $data['port'];
         $vps = $accessTokenData['client_id'];
         // Check values
@@ -177,6 +181,10 @@ class ServerController extends AppController {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_TYPE_LENGTH);
             return;
         }
+		if (strlen($ip) > 15) {
+            $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_IP_LENGTH);
+            return;
+		}
         if (!$this->core->isInteger($port)) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_PORT_INVALID);
             return;
@@ -190,7 +198,7 @@ class ServerController extends AppController {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_VPS_INVALID);
             return;
         }
-        $s = $this->serverDataController->createServer($name, $type, $port, $vps);
+        $s = $this->serverDataController->createServer($name, $type, $ip, $port, $vps);
         if (!$s) {
             // Error
             $this->response->error($this->response::SERVER_INTERNAL, Error::GLOBAL_UNKNOWN_ERROR);
@@ -215,6 +223,7 @@ class ServerController extends AppController {
             "name" => $s['name'],
             "type" => $s['type'],
             "vps" => $s['vps'],
+			"ip" => $s['ip'],
             "port" => $s['port'],
             "status" => $s['status'],
             "creationTime" => $this->core->formatDate($s['creation_time']),
@@ -301,6 +310,7 @@ class ServerController extends AppController {
             "name" => $s['name'],
             "type" => $s['type'],
             "vps" => $s['vps'],
+			"ip" => $s['ip'],
             "port" => $s['port'],
             "status" => $s['status'],
             "creationTime" => $this->core->formatDate($s['creation_time'])

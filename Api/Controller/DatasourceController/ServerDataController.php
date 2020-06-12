@@ -58,6 +58,7 @@ class ServerDataController {
                 'name' => $c['name'],
                 'type' => $c['type'],
                 'vps' => $c['vps'],
+				'ip' => $c['ip'],
                 'port' => $c['port'],
                 'status' => $c['status'],
                 'creation_time' => $c['creation_time']->toDateTime(),
@@ -105,6 +106,7 @@ class ServerDataController {
                     'name' => $v['name'],
                     'type' => $v['type'],
                     'vps' => $v['vps'],
+					'ip' => $v['ip'],
                     'port' => $v['port'],
                     'status' => $v['status'],
                     'creation_time' => $v['creation_time']->toDateTime(),
@@ -121,23 +123,25 @@ class ServerDataController {
     /**
      * @param $name string Le nom du serveur
      * @param $type string Le type de serveur
+     * @param $ip string L'ip du serveur
      * @param $port int Le port du serveur
      * @param $vps string Le VPS
      *
      * @return array|bool false si erreur, ou le serveur
      */
-    function createServer($name, $type, $port, $vps) {
+    function createServer($name, $type, $ip, $port, $vps) {
         try {
             $now = new \DateTime();
             $server = [
                 'name' => $name,
                 'type' => $type,
                 'vps' => $vps,
+				'ip' => $ip,
                 'port' => $port,
                 'status' => ServerStatus::STARTING,
                 'creation_time' => $now
             ];
-            $c = $this->db->insertOne(['name' => $server['name'], 'type' => $server['type'], 'vps' => $server['vps'], 'port' => $server['port'], 'status' => $server['status'], 'creation_time' => new UTCDateTime($server['creation_time']->getTimestamp() * 1000)]);
+            $c = $this->db->insertOne(['name' => $server['name'], 'type' => $server['type'], 'vps' => $server['vps'], 'ip' => $server['ip'], 'port' => $server['port'], 'status' => $server['status'], 'creation_time' => new UTCDateTime($server['creation_time']->getTimestamp() * 1000)]);
             if ($c->getInsertedCount() != 1)
                 return false;
             $server['id'] = (string) $c->getInsertedId();
