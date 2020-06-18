@@ -162,6 +162,7 @@ class ServerController extends AppController {
         $name = $data['name'];
         $type = $data['type'];
 		$ip = $data['ip'];
+		// TODO Check if $ip is a correct ip
         $port = $data['port'];
         $vps = $accessTokenData['client_id'];
         // Check values
@@ -169,7 +170,7 @@ class ServerController extends AppController {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_NAME_INVALID);
             return;
         }
-        if (strlen($name) > 16) {
+        if (strlen($name) > 32) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::SERVER_NAME_LENGTH);
             return;
         }
@@ -322,7 +323,7 @@ class ServerController extends AppController {
          * @var Server $oauth
          */
         $oauth = $this->oauth;
-        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVERS_MANAGER)) {
+        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_DELETE)) {
             // Invalid perm
             $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
             return;

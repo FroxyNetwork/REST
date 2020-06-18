@@ -38,4 +38,5 @@ interface Scope {
     const SERVERS_MANAGER = "servers_manager";
     const CORE = "core";
 	const SERVER_CONFIG = "server_config";
+	const SERVER_DELETE = "server_delete";
 }
