@@ -1,0 +1,33 @@
+use froxynetwork
+db.oauth_scopes.insertMany([{
+    "is_default" : false,
+    "scope" : "server_show_port"
+  },
+  {
+    "is_default" : false,
+    "scope" : "server_create"
+  },
+  {
+    "is_default" : false,
+    "scope" : "player_create"
+  },
+  {
+    "is_default" : false,
+    "scope" : "player_show_realname"
+  },
+  {
+    "is_default" : false,
+    "scope" : "player_show_ip"
+  },
+  {
+    "is_default" : false,
+    "scope" : "server_download"
+  },
+  {
+    "is_default" : false,
+    "scope" : "websocket_check_token"
+  },
+  {
+    "is_default" : false,
+    "scope" : "websocket_connection"
+  }])

@@ -1,0 +1,33 @@
+{
+	"types": [
+		{
+			"id": "koth",
+			"database": ["mob_kill", "block_place", "block_destroy"],
+			"variants": [
+				{
+					"id": "koth_4players",
+					"database": ["esezd"]
+				},
+				{
+					"id": "koth_8players",
+					"database": ["rtgvr"]
+				}
+			],
+			"min": 1,
+			"max": 5
+		}
+	],
+	"vps": [
+		{
+			"id": "VPS_01",
+			"max_servers": 4,
+			"config": [
+				{
+					"type": "koth",
+					"min": 1,
+					"max": 5
+				}
+			]
+		}
+	]
+}
