@@ -25,6 +25,8 @@
 
 namespace Api\Controller;
 
+use Api\Model\Scope;
+use OAuth2\Request;
 use Web\Controller\AppController;
 use Web\Controller\ResponseController;
 use Web\Core\Core;
@@ -32,12 +34,25 @@ use Web\Core\Error;
 
 class ServerconfigController extends AppController {
 
+    public function __construct(Core $core) {
+        parent::__construct($core);
+    }
+
     public function get($param) {
+        /**
+         * @var Server $oauth
+         */
+        $oauth = $this->oauth;
+        if (!$oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::SERVER_CONFIG)) {
+            // Invalid perm
+            $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
+            return;
+        }
         /**
          * @var ServerConfig $serverConfig
          */
         $serverConfig = $this->serverConfig;
-        if (Core::startsWith($param, "/"))
+        if ($this->core->startsWith($param, "/"))
             $param = substr($param, 1);
         $ln = strlen($param);
         if ($ln >= 1) {
@@ -52,12 +67,12 @@ class ServerconfigController extends AppController {
             if (!$parsedJson) {
                 // Json error
                 $this->response->error($serverConfig->getErrorType()[0], $serverConfig->getErrorType()[1]);
-                exit;
+                return;
             }
             if (!$serverConfig->exist($param)) {
                 // Json error
                 $this->response->error(ResponseController::ERROR_NOTFOUND, Error::SERVER_TYPE_NOT_FOUND);
-                exit;
+                return;
             }
             $this->response->ok(["types" => [$serverConfig->get($param)]]);
         } else {
@@ -66,7 +81,7 @@ class ServerconfigController extends AppController {
             if (!$parsedJson) {
                 // Json error
                 $this->response->error($serverConfig->getErrorType()[0], $serverConfig->getErrorType()[1]);
-                exit;
+                return;
             }
             $this->response->ok($parsedJson);
         }

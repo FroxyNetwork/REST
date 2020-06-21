@@ -49,10 +49,10 @@ class PlayerController extends AppController {
      */
     private $serverDataController;
 
-    public function __construct() {
-        parent::__construct();
-        $this->playerDataController = Core::getDataController("Player");
-        $this->serverDataController = Core::getDataController("Server");
+    public function __construct(Core $core) {
+        parent::__construct($core);
+        $this->playerDataController = $core->getDataController("Player");
+        $this->serverDataController = $core->getDataController("Server");
     }
 
     public function get($param) {
@@ -60,7 +60,7 @@ class PlayerController extends AppController {
          * @var Server $oauth
          */
         $oauth = $this->oauth;
-        if (Core::startsWith($param, "/"))
+        if ($this->core->startsWith($param, "/"))
             $param = substr($param, 1);
         $ln = strlen($param);
         $player = false;
@@ -85,8 +85,8 @@ class PlayerController extends AppController {
             "coins" => $player['coins'],
             "level" => $player['level'],
             "exp" => $player['exp'],
-            "firstLogin" => Core::formatDate($player['first_login']),
-            "lastLogin" => Core::formatDate($player['last_login']),
+            "firstLogin" => $this->core->formatDate($player['first_login']),
+            "lastLogin" => $this->core->formatDate($player['last_login']),
             "lang" => $player['lang']
         ];
         if ($oauth->verifyResourceRequest(Request::createFromGlobals(), null, Scope::PLAYER_SHOW_MORE)) {
@@ -161,8 +161,6 @@ class PlayerController extends AppController {
             $this->response->error($this->response::ERROR_CONFLICT, Error::PLAYER_PSEUDO_EXISTS);
             return;
         }
-        unset($GLOBALS['error']);
-        unset($GLOBALS['errorCode']);
         $p = $this->playerDataController->createUser($uuid, $nickname, $ip);
         if (!$p) {
             // Unknown error
@@ -176,8 +174,8 @@ class PlayerController extends AppController {
             "coins" => $p['coins'],
             "level" => $p['level'],
             "exp" => $p['exp'],
-            "firstLogin" => Core::formatDate($p['first_login']),
-            "lastLogin" => Core::formatDate($p['last_login']),
+            "firstLogin" => $this->core->formatDate($p['first_login']),
+            "lastLogin" => $this->core->formatDate($p['last_login']),
             "ip" => $p['ip'],
             "lang" => $p['lang']
         ], $this->response::SUCCESS_CREATED);
@@ -213,7 +211,7 @@ class PlayerController extends AppController {
             $this->response->error($this->response::ERROR_FORBIDDEN, Error::GLOBAL_NO_PERMISSION);
             return;
         }
-        if (Core::startsWith($param, "/"))
+        if ($this->core->startsWith($param, "/"))
             $param = substr($param, 1);
         $ln = strlen($param);
         if ($ln != 36) {
@@ -238,7 +236,7 @@ class PlayerController extends AppController {
         $lastLogin = $data['lastLogin'];
         $ip = $data['ip'];
         $lang = $data['lang'];
-        $newServerId = $data['server'];
+        $newServerId = isset($data['server']) ? $data['server'] : null;
         if (!is_string($uuid) || (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $uuid) !== 1)) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_UUID_FORMAT);
             return;
@@ -307,7 +305,7 @@ class PlayerController extends AppController {
             // Get server
             $server = $this->serverDataController->getServer($newServerId);
             // Check if server is found
-            if (is_null($server) || !$server) {
+            if (!$server) {
                 // Server not found
                 $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_SERVER_NOT_FOUND);
                 return;
@@ -348,8 +346,8 @@ class PlayerController extends AppController {
             "coins" => $p2['coins'],
             "level" => $p2['level'],
             "exp" => $p2['exp'],
-            "firstLogin" => Core::formatDate($p2['first_login']),
-            "lastLogin" => Core::formatDate($p2['last_login']),
+            "firstLogin" => $this->core->formatDate($p2['first_login']),
+            "lastLogin" => $this->core->formatDate($p2['last_login']),
             "ip" => $p2['ip'],
             "lang" => $p2['lang']
         ];

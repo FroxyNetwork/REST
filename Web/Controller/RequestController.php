@@ -32,6 +32,10 @@ use Web\Util\InputStreamUtil;
 
 class RequestController {
     /**
+     * @var Core $core The core
+     */
+    private $core;
+    /**
      * @var bool $https True si l'on utilise https
      */
     var $https;
@@ -67,8 +71,11 @@ class RequestController {
 
     /**
      * RequestController constructor.
+     *
+     * @param $core Core The core
      */
-    public function __construct() {
+    public function __construct(Core $core) {
+        $this->core = $core;
         // https ?
         $this->https = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== "off");
         // Hôte
@@ -86,11 +93,11 @@ class RequestController {
         $path = dirname($urlpath);
         if ($path == "\\")
             $path = "/";
-        else if (!Core::endsWith("/", $path))
+        else if (!$this->core->endsWith("/", $path))
             $path .= "/";
         $file = basename($urlpath);
         if (strpos($file, ".") === false) {
-            $path .= ((Core::endsWith($path, "/")) ? "" : "/").$file;
+            $path .= (($this->core->endsWith($path, "/")) ? "" : "/").$file;
             $file = "";
         }
         $this->path = $path;

@@ -27,7 +27,14 @@
 
 namespace Web\Controller;
 
+use Web\Core\Core;
+
 abstract class AppController {
+
+    /**
+     * @var Core The Core
+     */
+    public $core;
 
     /**
      * @var RequestController The Request Controller
@@ -39,7 +46,8 @@ abstract class AppController {
      */
     public $response;
 
-    public function __construct() {
+    public function __construct(Core $core) {
+        $this->core = $core;
     }
 
     public function get($param) {

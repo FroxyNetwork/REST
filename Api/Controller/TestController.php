@@ -28,8 +28,13 @@
 namespace Api\Controller;
 
 use Web\Controller\AppController;
+use Web\Core\Core;
 
 class TestController extends AppController {
+
+    public function __construct(Core $core) {
+        parent::__construct($core);
+    }
 
     public function get($param) {
         $this->response->ok(["METHODE" => "GET", "URL" => $this->request->getURL(true, true)]);
