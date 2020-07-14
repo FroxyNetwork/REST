@@ -94,6 +94,7 @@ class PlayerController extends AppController {
             $return['ip'] = $player['ip'];
             if (isset($player['server']))
                 $return['server'] = $player['server'];
+			$return['saved'] = $player['saved'];
         }
         $this->response->ok($return);
     }
@@ -177,7 +178,8 @@ class PlayerController extends AppController {
             "firstLogin" => $this->core->formatDate($p['first_login']),
             "lastLogin" => $this->core->formatDate($p['last_login']),
             "ip" => $p['ip'],
-            "lang" => $p['lang']
+            "lang" => $p['lang'],
+			"saved" => $p['saved']
         ], $this->response::SUCCESS_CREATED);
         return;
     }
@@ -193,7 +195,8 @@ class PlayerController extends AppController {
         "lastLogin" => "...",
         "ip" => "127.0.0.1",
         "lang" => "fr_FR",
-        "server" => "62ec3f29d48a15ce2de9106981945d17082935ae"
+        "server" => "62ec3f29d48a15ce2de9106981945d17082935ae",
+		"saved" => true
      * }
      * // TODO Retirer "nickname" (Trouver un autre moyen pour changer de pseudo (Genre une autre url + vérif par mail etc ==> Mail ?))
      * // TODO Retirer "coins", "level", "exp" (On va gérer ça par un autre moyen)
@@ -237,6 +240,8 @@ class PlayerController extends AppController {
         $ip = $data['ip'];
         $lang = $data['lang'];
         $newServerId = isset($data['server']) ? $data['server'] : null;
+		$save = isset($data['saved']);
+		$saved = $save ? true : (boolean) $data['saved'];
         if (!is_string($uuid) || (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $uuid) !== 1)) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_UUID_FORMAT);
             return;
@@ -265,7 +270,7 @@ class PlayerController extends AppController {
         }
         // lastLogin
         try {
-            $lastLogin = new \DateTime($lastLogin);
+            $lastLogin = new \DateTime($lastLogin, new \DateTimeZone('UTC'));
         } catch (\Exception $ex) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_TIME_FORMAT);
             return;
@@ -299,6 +304,7 @@ class PlayerController extends AppController {
         $p['last_login'] = $lastLogin;
         $p['ip'] = $ip;
         $p['lang'] = $lang;
+		$p['saved'] = $saved;
         // Check if it's a different server
         if (isset($newServerId) && (!isset($p['server']) || $p['server']['id'] != $newServerId)) {
             // Update new Server Id
@@ -321,19 +327,12 @@ class PlayerController extends AppController {
                 'name' => $server['name'],
                 'type' => $server['type']
             ];
-            if (isset($server['docker'])) {
-                // Save docker
-                $p['server']['docker'] = [
-                    'server' => $server['docker']['server'],
-                    'id' => $server['docker']['id']
-                ];
-            }
         }
         if (!isset($newServerId))
             // Unset server to clear it if no server has been specified in the request
             unset($p['server']);
         // Tout est bon, on update les valeurs
-        $p2 = $this->playerDataController->updateUser($p);
+        $p2 = $this->playerDataController->updateUser($p, $saved);
         if ($p2 == null) {
             // Unknown error
             $this->response->error($this->response::SERVER_INTERNAL, Error::GLOBAL_UNKNOWN_ERROR);
@@ -349,7 +348,8 @@ class PlayerController extends AppController {
             "firstLogin" => $this->core->formatDate($p2['first_login']),
             "lastLogin" => $this->core->formatDate($p2['last_login']),
             "ip" => $p2['ip'],
-            "lang" => $p2['lang']
+            "lang" => $p2['lang'],
+			"saved" => $p2['saved']
         ];
         if (isset($p2['server']))
             $return['server'] = $p2['server'];

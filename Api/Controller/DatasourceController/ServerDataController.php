@@ -131,7 +131,7 @@ class ServerDataController {
      */
     function createServer($name, $type, $ip, $port, $vps) {
         try {
-            $now = new \DateTime();
+            $now = new \DateTime("now", new \DateTimeZone('UTC'));
             $server = [
                 'name' => $name,
                 'type' => $type,
