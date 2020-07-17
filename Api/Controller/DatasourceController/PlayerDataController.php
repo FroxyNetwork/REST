@@ -93,7 +93,6 @@ class PlayerDataController {
                 'last_login' => $c['last_login']->toDateTime(),
                 'ip' => $c['ip'],
                 'lang' => $c['lang'],
-                'server' => $c['server'],
 				'saved' => $c['saved']
             ];
             if (isset($c['server']))
