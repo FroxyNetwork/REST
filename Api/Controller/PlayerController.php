@@ -226,7 +226,7 @@ class PlayerController extends AppController {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_DATA_INVALID);
             return;
         }
-        if (!is_array($data) || empty($data['nickname']) || empty($data['displayName']) || empty($data['lastLogin']) || empty($data['ip']) || empty($data['lang'])) {
+        if (!is_array($data) || empty($data['nickname']) || empty($data['displayName']) || empty($data['coins']) || empty($data['level']) || empty($data['exp']) || empty($data['lastLogin']) || empty($data['ip']) || empty($data['lang']) || empty($data['server'])) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::GLOBAL_DATA_INVALID);
             return;
         }
@@ -239,9 +239,8 @@ class PlayerController extends AppController {
         $lastLogin = $data['lastLogin'];
         $ip = $data['ip'];
         $lang = $data['lang'];
-        $newServerId = isset($data['server']) ? $data['server'] : null;
-		$save = isset($data['saved']);
-		$saved = $save ? true : (boolean) $data['saved'];
+        $serverId = $data['server'];
+		$saved = isset($data['saved']) ? true : (boolean) $data['saved'];
         if (!is_string($uuid) || (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $uuid) !== 1)) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_UUID_FORMAT);
             return;
@@ -292,7 +291,7 @@ class PlayerController extends AppController {
             return;
         }
         // Check if server is string type
-        if (isset($newServerId) && !is_string($newServerId)) {
+        if (isset($serverId) && !is_string($serverId)) {
             $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_SERVER_INVALID);
             return;
         }
@@ -305,32 +304,7 @@ class PlayerController extends AppController {
         $p['ip'] = $ip;
         $p['lang'] = $lang;
 		$p['saved'] = $saved;
-        // Check if it's a different server
-        if (isset($newServerId) && (!isset($p['server']) || $p['server']['id'] != $newServerId)) {
-            // Update new Server Id
-            // Get server
-            $server = $this->serverDataController->getServer($newServerId);
-            // Check if server is found
-            if (!$server) {
-                // Server not found
-                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_SERVER_NOT_FOUND);
-                return;
-            }
-            // Check if server is opened
-            // 'STARTING', 'WAITING', 'STARTED', 'ENDING'
-            if ($server['status'] != 'STARTING' && $server['status'] != 'WAITING' && $server['status'] != 'STARTED' && $server['status'] != 'ENDING') {
-                $this->response->error($this->response::ERROR_BAD_REQUEST, Error::PLAYER_SERVER_NOT_OPENED);
-                return;
-            }
-            $p['server'] = [
-                'id' => $server['id'],
-                'name' => $server['name'],
-                'type' => $server['type']
-            ];
-        }
-        if (!isset($newServerId))
-            // Unset server to clear it if no server has been specified in the request
-            unset($p['server']);
+		$p['server'] = $serverId;
         // Tout est bon, on update les valeurs
         $p2 = $this->playerDataController->updateUser($p, $saved);
         if ($p2 == null) {
@@ -349,10 +323,9 @@ class PlayerController extends AppController {
             "lastLogin" => $this->core->formatDate($p2['last_login']),
             "ip" => $p2['ip'],
             "lang" => $p2['lang'],
-			"saved" => $p2['saved']
+			"saved" => $p2['saved'],
+			"server" => $p2['server']
         ];
-        if (isset($p2['server']))
-            $return['server'] = $p2['server'];
         $this->response->ok($return, $this->response::SUCCESS_OK);
         return;
     }
