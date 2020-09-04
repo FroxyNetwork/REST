@@ -2,7 +2,7 @@
 /**
  * MIT License
  *
- * Copyright (c) 2019 FroxyNetwork
+ * Copyright (c) 2020 FroxyNetwork
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -62,7 +62,8 @@ class PlayerDataController {
                 'first_login' => $c['first_login']->toDateTime(),
                 'last_login' => $c['last_login']->toDateTime(),
                 'ip' => $c['ip'],
-                'lang' => $c['lang']
+                'lang' => $c['lang'],
+				'saved' => $c['saved']
             ];
             if (isset($c['server']))
                 $user['server'] = $c['server'];
@@ -92,7 +93,7 @@ class PlayerDataController {
                 'last_login' => $c['last_login']->toDateTime(),
                 'ip' => $c['ip'],
                 'lang' => $c['lang'],
-                'server' => $c['server']
+				'saved' => $c['saved']
             ];
             if (isset($c['server']))
                 $user['server'] = $c['server'];
@@ -122,9 +123,10 @@ class PlayerDataController {
                 'first_login' => $now,
                 'last_login' => $now,
                 'ip' => $ip,
-                'lang' => 'fr_FR'
+                'lang' => 'fr_FR',
+				'saved' => true
             ];
-            $c = $this->db->insertOne(['_id' => $user['uuid'], 'nickname' => $user['nickname'], 'display_name' => $user['display_name'], 'coins' => $user['coins'], 'level' => $user['level'], 'exp' => $user['exp'], 'first_login' => new UTCDateTime($user['first_login']->getTimestamp() * 1000), 'last_login' => new UTCDateTime($user['last_login']->getTimestamp() * 1000), 'ip' => $user['ip'], 'lang' => $user['lang']]);
+            $c = $this->db->insertOne(['_id' => $user['uuid'], 'nickname' => $user['nickname'], 'display_name' => $user['display_name'], 'coins' => $user['coins'], 'level' => $user['level'], 'exp' => $user['exp'], 'first_login' => new UTCDateTime($user['first_login']->getTimestamp() * 1000), 'last_login' => new UTCDateTime($user['last_login']->getTimestamp() * 1000), 'ip' => $user['ip'], 'lang' => $user['lang'], 'saved' => $user['saved']]);
             if ($c->getInsertedCount() != 1)
                 return false;
             return $user;
@@ -138,9 +140,12 @@ class PlayerDataController {
      *
      * @return array|bool false si erreur, ou le joueur
      */
-    function updateUser($p) {
+    function updateUser($p, $saved = false) {
         try {
-            $c = $this->db->updateOne(["_id" => $p['uuid']], ['$set' => ['nickname' => $p['nickname'], 'display_name' => $p['display_name'], 'coins' => $p['coins'], 'level' => $p['level'], 'exp' => $p['exp'], 'last_login' => new UTCDateTime($p['last_login']->getTimestamp() * 1000), 'ip' => $p['ip'], 'lang' => $p['lang'], 'server' => $p['server']]]);
+			$set = ['nickname' => $p['nickname'], 'display_name' => $p['display_name'], 'coins' => $p['coins'], 'level' => $p['level'], 'exp' => $p['exp'], 'last_login' => new UTCDateTime($p['last_login']->getTimestamp() * 1000), 'ip' => $p['ip'], 'lang' => $p['lang'], 'server' => $p['server'], 'saved' => $p['saved']];
+			if ($saved)
+				$set['saved'] = $p['saved'];
+            $c = $this->db->updateOne(["_id" => $p['uuid']], ['$set' => $set]);
             if ($c->getModifiedCount() != 1)
                 return false;
             return $p;

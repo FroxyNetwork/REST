@@ -10,12 +10,12 @@
         },
         {
             "name": "FroxyNetwork community",
-            "homepage": "https://github.com/froxyNetwork/rest/graphs/contributors"
+            "homepage": "https://github.com/froxyProject/rest/graphs/contributors"
         }
     ],
 	"support": {
-        "issues": "https://github.com/froxynetwork/rest/issues",
-        "source": "https://github.com/froxynetwork/rest"
+        "issues": "https://github.com/froxyproject/rest/issues",
+        "source": "https://github.com/froxyproject/rest"
     },
     "require": {
         "bshaffer/oauth2-server-php": "^1.11",
