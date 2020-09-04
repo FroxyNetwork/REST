@@ -1,4 +1,13 @@
 # REST
+Projet PHP non mis à jour !!!!
+
+Il a été réécrit entièrement en Python
+
+Pour la nouvelle version, veuillez vous rendre [ici](https://github.com/FroxyNetwork/PyREST)
+
+
+
+
 API Rest pour le Projet Froxy-Network
 
 Ce dépôt contient les sources et la documentation pour la partie REST.
