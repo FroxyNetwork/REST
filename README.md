@@ -1,9 +1,7 @@
 # REST
-Projet PHP non mis à jour !!!!
+Réécriture de ce projet en Python
 
-Il a été réécrit entièrement en Python
-
-Pour la nouvelle version, veuillez vous rendre [ici](https://github.com/FroxyNetwork/PyREST)
+Pour la nouvelle version, veuillez vous rendre [ici](https://github.com/FroxyProject/PyREST)
 
 
 
